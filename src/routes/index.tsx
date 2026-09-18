@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageShell } from "@/components/Shell";
-import { Badge, Button, Card, Field, Input, SectionTitle, Select } from "@/components/ui-kit";
+import { Badge, Button, Card, Field, Input, Select } from "@/components/ui-kit";
 import { useI18n } from "@/lib/i18n";
 import { generatePassword, useStore, type RaidMode, type Room } from "@/lib/store";
 import { cn } from "@/lib/utils";
