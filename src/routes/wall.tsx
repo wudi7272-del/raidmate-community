@@ -87,7 +87,7 @@ function WallPage() {
               kind,
               text: text.trim(),
               location: location.trim() || "—",
-              image: image.trim() || undefined,
+              ...(image.trim() ? { image: image.trim() } : {}),
               iv: { a: 15, d: 15, s: 15 },
             });
             setText("");
