@@ -3,10 +3,10 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 export type Lang = "zh" | "en" | "ja" | "ko";
 
 export const LANGS: { code: Lang; label: string; flag: string }[] = [
-  { code: "zh", label: "中文", flag: "🇨🇳" },
-  { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "ja", label: "日本語", flag: "🇯🇵" },
-  { code: "ko", label: "한국어", flag: "🇰🇷" },
+  { code: "zh", label: "中文", flag: "ZH" },
+  { code: "en", label: "English", flag: "EN" },
+  { code: "ja", label: "日本語", flag: "JA" },
+  { code: "ko", label: "한국어", flag: "KO" },
 ];
 
 type Dict = Record<string, string>;

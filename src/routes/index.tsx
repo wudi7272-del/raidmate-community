@@ -349,7 +349,7 @@ function RoomCard({ room }: { room: Room }) {
               disabled={room.launched}
               onClick={() => launchRoom(room.id)}
             >
-              🚀 {t("rooms.launch")}
+              {t("rooms.launch")}
             </Button>
             <Button size="sm" variant="danger" onClick={() => removeRoom(room.id)}>
               {isAdmin && !isHost ? t("rooms.adminClean") : t("rooms.disband")}

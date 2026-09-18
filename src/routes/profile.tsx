@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { Clipboard } from "lucide-react";
 import { PageShell } from "@/components/Shell";
 import { Badge, Button, Card, Field, Input, SectionTitle } from "@/components/ui-kit";
 import { useI18n } from "@/lib/i18n";
@@ -63,7 +64,7 @@ function ProfilePage() {
               onChange={(e) => setDraft({ ...draft, friendCode: e.target.value })}
             />
             <Button variant="outline" onClick={() => copy(draft.friendCode, t("copied"))}>
-              📋
+              <Clipboard className="h-4 w-4" />
             </Button>
           </div>
         </Field>
@@ -97,7 +98,7 @@ function ProfilePage() {
             setProfile(next);
           }}
         >
-          {draft.vip ? "👑 " + t("profile.vipOn") : t("profile.vipOff")}
+          {draft.vip ? t("profile.vipOn") : t("profile.vipOff")}
         </Button>
         <p className="text-[11px] text-muted-foreground">{t("profile.adminNote")}</p>
       </Card>

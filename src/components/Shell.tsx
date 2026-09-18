@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { ChevronDown, Clipboard, Gamepad2, Languages, PictureInPicture2, Swords, Sparkles, Calculator, IdCard, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LANGS, useI18n } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
@@ -24,9 +25,10 @@ function LanguageSwitcher() {
         aria-label={t("nav.language")}
         className="tap-scale flex items-center gap-1.5 rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-xs font-semibold"
       >
-        <span className="text-base leading-none">{current.flag}</span>
+        <Languages className="h-3.5 w-3.5 text-primary" />
+        <span className="font-display text-[10px] text-primary">{current.flag}</span>
         <span>{current.label}</span>
-        <span className={cn("text-[9px] transition-transform", open && "rotate-180")}>▼</span>
+        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
       </button>
       {open ? (
         <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-xl border border-border bg-popover/95 shadow-xl backdrop-blur-xl rise-in">
@@ -42,7 +44,7 @@ function LanguageSwitcher() {
                 l.code === lang && "bg-primary/12 text-primary",
               )}
             >
-              <span className="text-base">{l.flag}</span>
+              <span className="font-display text-[10px] text-muted-foreground">{l.flag}</span>
               {l.label}
             </button>
           ))}
@@ -53,10 +55,10 @@ function LanguageSwitcher() {
 }
 
 const NAV = [
-  { to: "/", key: "nav.rooms", icon: "⚔️" },
-  { to: "/wall", key: "nav.wall", icon: "✨" },
-  { to: "/tools", key: "nav.tools", icon: "🧮" },
-  { to: "/profile", key: "nav.profile", icon: "🪪" },
+  { to: "/", key: "nav.rooms", Icon: Swords },
+  { to: "/wall", key: "nav.wall", Icon: Sparkles },
+  { to: "/tools", key: "nav.tools", Icon: Calculator },
+  { to: "/profile", key: "nav.profile", Icon: IdCard },
 ] as const;
 
 export function TopNav() {
@@ -68,7 +70,7 @@ export function TopNav() {
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
         <Link to="/" className="flex items-center gap-2.5">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary/18 text-lg glow-primary">
-            ⚡
+            <Zap className="h-4 w-4 text-primary" />
           </span>
           <span className="leading-tight">
             <span className="block font-display text-sm font-bold tracking-[0.18em] neon-text">
@@ -90,13 +92,13 @@ export function TopNav() {
               key={item.to}
               to={item.to}
               activeOptions={{ exact: item.to === "/" }}
-              className="tap-scale shrink-0 rounded-xl border border-border bg-surface/60 px-3.5 py-2 text-xs font-semibold text-muted-foreground"
+              className="tap-scale flex shrink-0 items-center gap-1.5 rounded-xl border border-border bg-surface/60 px-3.5 py-2 text-xs font-semibold text-muted-foreground"
               activeProps={{
                 className:
-                  "tap-scale shrink-0 rounded-xl border border-primary/50 bg-primary/15 px-3.5 py-2 text-xs font-semibold text-primary glow-primary",
+                  "tap-scale flex shrink-0 items-center gap-1.5 rounded-xl border border-primary/50 bg-primary/15 px-3.5 py-2 text-xs font-semibold text-primary glow-primary",
               }}
             >
-              <span className="mr-1">{item.icon}</span>
+              <item.Icon className="h-3.5 w-3.5" />
               {t(item.key)}
             </Link>
           ))}
@@ -150,14 +152,14 @@ export function BottomBar() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/90 px-4 pb-[env(safe-area-inset-bottom)] pt-3 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center gap-2 pb-3">
           <Button className="flex-1" onClick={() => window.open("https://pokemongolive.com/", "_blank")}>
-            🎮 {t("bar.launchGame")}
+            <Gamepad2 className="h-4 w-4" /> {t("bar.launchGame")}
           </Button>
           <Button
             variant={floating ? "accent" : "ghost"}
             className="flex-1"
             onClick={() => setFloating((v) => !v)}
           >
-            🫧 {t("bar.floating")}
+            <PictureInPicture2 className="h-4 w-4" /> {t("bar.floating")}
           </Button>
           <Button variant="outline" onClick={() => copy(profile.friendCode, t("copied"))} aria-label={t("bar.copyCode")}>
             📋

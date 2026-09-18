@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { Heart, MapPin, MessageCircle } from "lucide-react";
 import { PageShell } from "@/components/Shell";
 import { Badge, Button, Card, Field, Input, SectionTitle, Select, Textarea } from "@/components/ui-kit";
 import { useI18n } from "@/lib/i18n";
@@ -127,7 +128,7 @@ function PostCard({ post }: { post: Post }) {
             <span className="text-sm font-semibold">{post.author}</span>
             <Badge tone={kindTone[post.kind]}>{t(`wall.kind.${post.kind}`)}</Badge>
           </div>
-          <span className="text-[11px] text-muted-foreground">📍 {post.location}</span>
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground"><MapPin className="h-3 w-3" />{post.location}</span>
         </div>
         {isAdmin || post.author === profile.trainerName ? (
           <button
@@ -165,10 +166,10 @@ function PostCard({ post }: { post: Post }) {
           variant={post.liked ? "accent" : "ghost"}
           onClick={() => toggleLike(post.id)}
         >
-          {post.liked ? "❤️" : "🤍"} {post.likes}
+          <Heart className={cn("h-4 w-4", post.liked && "fill-current")} /> {post.likes}
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)}>
-          💬 {post.comments.length} {t("wall.comments")}
+          <MessageCircle className="h-4 w-4" /> {post.comments.length} {t("wall.comments")}
         </Button>
       </div>
 
