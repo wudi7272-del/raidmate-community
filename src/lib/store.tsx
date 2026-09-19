@@ -634,11 +634,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const resetAccountPassword = (username: string, password: string) => {
       const account = accounts.find((item) => item.username === username);
       if (account) updateAccount(username, account.profile, password);
-    };
-    localStorage.removeItem("raid-nexus-auth");
-    setAuthUser(null);
-    setProfileState(defaultProfile);
   };
+
+  const isAccountFrozen = (username: string) => frozenAccounts.includes(username);
+
 
   const showToast = (msg: string) => {
     setToast(msg);
