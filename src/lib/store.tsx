@@ -162,6 +162,9 @@ function readStored<T>(key: string, fallback: T): T {
   }
 }
 
+// Fixed base time so SSR and client render identical seed data (no hydration mismatch).
+const SEED_NOW = Date.parse("2026-09-19T06:00:00Z");
+
 function seedFinanceOrders(): FinanceOrder[] {
   return [
     {
@@ -174,7 +177,7 @@ function seedFinanceOrders(): FinanceOrder[] {
       proof: "",
       accountInfo: "USDT TRC20 · TQnexus-demo",
       contact: "Telegram @mistygo",
-      createdAt: Date.now() - 3600000,
+      createdAt: SEED_NOW - 3600000,
     },
     {
       id: "WD-811",
@@ -186,7 +189,7 @@ function seedFinanceOrders(): FinanceOrder[] {
       proof: "",
       accountInfo: "Binance UID 884201",
       contact: "Discord shiny.jp",
-      createdAt: Date.now() - 1800000,
+      createdAt: SEED_NOW - 1800000,
     },
   ];
 }
@@ -194,7 +197,7 @@ function seedFinanceOrders(): FinanceOrder[] {
 function seedRooms(): Room[] {
   return [
     {
-      id: uid(),
+      id: "seed-room-mewtwo",
       boss: "Mewtwo",
       gym: "Shibuya Crossing Gym",
       cp: 54148,
@@ -203,20 +206,20 @@ function seedRooms(): Room[] {
       mode: "remote",
       capacity: 10,
       hostName: "wudi0693",
-      hostCode: randCode(),
-      password: generatePassword(),
+      hostCode: "5107 7347 6209",
+      password: "Pikachu-Bulbasaur-Charmander",
       launched: false,
-      createdAt: Date.now() - 120000,
+      createdAt: SEED_NOW - 120000,
       queue: [
-        { id: uid(), name: "ShinyHunterJP", code: randCode(), vip: true, ready: true, dps: 840 },
-        { id: uid(), name: "KimRaidKing", code: randCode(), vip: false, ready: true, dps: 710 },
-        { id: uid(), name: "阿杰打团", code: randCode(), vip: false, ready: false, dps: 620 },
+        { id: "seed-m1", name: "ShinyHunterJP", code: "2841 9063 5572", vip: true, ready: true, dps: 840 },
+        { id: "seed-m2", name: "KimRaidKing", code: "7395 1128 4460", vip: false, ready: true, dps: 710 },
+        { id: "seed-m3", name: "阿杰打团", code: "6602 3814 9927", vip: false, ready: false, dps: 620 },
       ],
       formationId: "counter",
       lottery: { enabled: true, entries: ["ShinyHunterJP", "KimRaidKing"], pot: 10 },
     },
     {
-      id: uid(),
+      id: "seed-room-rayquaza",
       boss: "Rayquaza",
       gym: "KLCC Park Gym",
       cp: 51968,
@@ -225,11 +228,11 @@ function seedRooms(): Room[] {
       mode: "local",
       capacity: 5,
       hostName: "NeonTrainer",
-      hostCode: randCode(),
-      password: generatePassword(),
+      hostCode: "3358 7704 1269",
+      password: "Eevee-Snorlax-Gengar",
       launched: false,
-      createdAt: Date.now() - 300000,
-      queue: [{ id: uid(), name: "MistyGo", code: randCode(), vip: false, ready: false, dps: 650 }],
+      createdAt: SEED_NOW - 300000,
+      queue: [{ id: "seed-m4", name: "MistyGo", code: "4471 8259 0633", vip: false, ready: false, dps: 650 }],
       formationId: "weather",
       lottery: { enabled: false, entries: [], pot: 0 },
     },
