@@ -36,10 +36,20 @@ export type Bounty = {
   request: string;
   reward: number;
   boss: string;
-  status: "open" | "accepted" | "completed";
+  status: "open" | "accepted" | "completed" | "cancelled";
   acceptedBy?: string;
+  acceptedRole?: string;
 };
-export type Lottery = { enabled: boolean; entries: string[]; winner?: string; pot: number };
+export type Lottery = {
+  enabled: boolean;
+  entries: string[];
+  winner?: string;
+  winners?: string[];
+  proof?: string;
+  pot: number;
+  closed?: boolean;
+};
+
 
 export type Room = {
   id: string;
@@ -94,7 +104,7 @@ export type AuthUser = {
 
 export type FinanceOrder = {
   id: string;
-  kind: "deposit" | "withdrawal";
+  kind: "deposit";
   username: string;
   amount: number;
   coins: number;
@@ -105,6 +115,22 @@ export type FinanceOrder = {
   createdAt: number;
 };
 
+export type CoinLedger = {
+  id: string;
+  username: string;
+  delta: number;
+  note: string;
+  operator: string;
+  createdAt: number;
+};
+
+export const COIN_PACKAGES = [
+  { id: "p1", usd: 0.99, coins: 100 },
+  { id: "p2", usd: 4.99, coins: 500 },
+  { id: "p3", usd: 9.99, coins: 1000 },
+  { id: "p4", usd: 19.99, coins: 2000 },
+] as const;
+
 export type Account = { username: string; password: string; profile: Profile };
 
 type StoredAccount = {
@@ -112,6 +138,7 @@ type StoredAccount = {
   password: string;
   profile: Profile;
 };
+
 
 export const FORMATIONS: Formation[] = [
   { id: "mega", name: "Mega 核心爆发", description: "高压速推，适合竞速榜冲刺", dps: 920 },
@@ -171,27 +198,16 @@ function seedFinanceOrders(): FinanceOrder[] {
       id: "ORD-24091",
       kind: "deposit",
       username: "MistyGo",
-      amount: 6,
-      coins: 300,
+      amount: 4.99,
+      coins: 500,
       status: "pending",
       proof: "",
       accountInfo: "USDT TRC20 · TQnexus-demo",
       contact: "Telegram @mistygo",
       createdAt: SEED_NOW - 3600000,
     },
-    {
-      id: "WD-811",
-      kind: "withdrawal",
-      username: "ShinyHunterJP",
-      amount: 150,
-      coins: 150,
-      status: "pending",
-      proof: "",
-      accountInfo: "Binance UID 884201",
-      contact: "Discord shiny.jp",
-      createdAt: SEED_NOW - 1800000,
-    },
   ];
+
 }
 
 function seedRooms(): Room[] {
