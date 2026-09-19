@@ -119,18 +119,14 @@ function ToolsPage() {
           </div>
         ))}
         <div className="grid grid-cols-2 gap-3">
-          <Field label={t("tools.baseCp")}>
+          <Field label="当前 CP">
             <Input type="number" value={cp} onChange={(e) => setCp(Number(e.target.value))} />
           </Field>
-          <Field label={t("tools.evoMultiplier")}>
-            <Input
-              type="number"
-              step="0.1"
-              value={evo}
-              onChange={(e) => setEvo(Number(e.target.value))}
-            />
+          <Field label="当前 HP">
+            <Input type="number" value={hp} onChange={(e) => setHp(Number(e.target.value))} />
           </Field>
         </div>
+
       </Card>
 
       <div className="grid gap-3 sm:grid-cols-2">
