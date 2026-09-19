@@ -532,7 +532,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    const submitDeposit = (
+    localStorage.removeItem("raid-nexus-auth");
+    setAuthUser(null);
+    setProfileState(defaultProfile);
+  };
+
+  const submitDeposit = (
       input: Omit<FinanceOrder, "id" | "kind" | "username" | "status" | "createdAt">,
     ) => {
       const order: FinanceOrder = {
