@@ -36,10 +36,20 @@ export type Bounty = {
   request: string;
   reward: number;
   boss: string;
-  status: "open" | "accepted" | "completed";
+  status: "open" | "accepted" | "completed" | "cancelled";
   acceptedBy?: string;
+  acceptedRole?: string;
 };
-export type Lottery = { enabled: boolean; entries: string[]; winner?: string; pot: number };
+export type Lottery = {
+  enabled: boolean;
+  entries: string[];
+  winner?: string;
+  winners?: string[];
+  proof?: string;
+  pot: number;
+  closed?: boolean;
+};
+
 
 export type Room = {
   id: string;
