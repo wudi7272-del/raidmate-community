@@ -104,7 +104,7 @@ export type AuthUser = {
 
 export type FinanceOrder = {
   id: string;
-  kind: "deposit" | "withdrawal";
+  kind: "deposit";
   username: string;
   amount: number;
   coins: number;
@@ -115,6 +115,22 @@ export type FinanceOrder = {
   createdAt: number;
 };
 
+export type CoinLedger = {
+  id: string;
+  username: string;
+  delta: number;
+  note: string;
+  operator: string;
+  createdAt: number;
+};
+
+export const COIN_PACKAGES = [
+  { id: "p1", usd: 0.99, coins: 100 },
+  { id: "p2", usd: 4.99, coins: 500 },
+  { id: "p3", usd: 9.99, coins: 1000 },
+  { id: "p4", usd: 19.99, coins: 2000 },
+] as const;
+
 export type Account = { username: string; password: string; profile: Profile };
 
 type StoredAccount = {
@@ -122,6 +138,7 @@ type StoredAccount = {
   password: string;
   profile: Profile;
 };
+
 
 export const FORMATIONS: Formation[] = [
   { id: "mega", name: "Mega 核心爆发", description: "高压速推，适合竞速榜冲刺", dps: 920 },
