@@ -517,7 +517,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!account || frozenAccounts.includes(account.username)) {
       showToast("账号或密码错误");
       return false;
-      setAccounts([...accounts, { username: normalized, password, profile: nextProfile }]);
     }
     const nextUser: AuthUser = {
       username: account.username,
@@ -533,7 +532,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    const submitDeposit = (
+    localStorage.removeItem("raid-nexus-auth");
+    setAuthUser(null);
+    setProfileState(defaultProfile);
+  };
+
+  const submitDeposit = (
       input: Omit<FinanceOrder, "id" | "kind" | "username" | "status" | "createdAt">,
     ) => {
       const order: FinanceOrder = {
@@ -630,11 +634,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const resetAccountPassword = (username: string, password: string) => {
       const account = accounts.find((item) => item.username === username);
       if (account) updateAccount(username, account.profile, password);
-    };
-    localStorage.removeItem("raid-nexus-auth");
-    setAuthUser(null);
-    setProfileState(defaultProfile);
   };
+
+  const isAccountFrozen = (username: string) => frozenAccounts.includes(username);
+
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -930,8 +933,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ),
         ),
       removePost: (postId) => setPosts((prev) => prev.filter((p) => p.id !== postId)),
+      accounts,
+      frozenAccounts,
+      financeOrders,
+      submitDeposit,
+      submitWithdrawal,
+      reviewFinanceOrder,
+      toggleFrozenAccount,
+      updateAccount,
+      toggleAccountVip,
+      resetAccountPassword,
+      isAccountFrozen,
     }),
     [
+      accounts,
+      frozenAccounts,
+      financeOrders,
       profile,
       authUser,
       isAuthenticated,
