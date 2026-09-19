@@ -242,7 +242,7 @@ function seedRooms(): Room[] {
 function seedPosts(): Post[] {
   return [
     {
-      id: uid(),
+      id: "seed-post-shiny",
       author: "ShinyHunterJP",
       kind: "shiny",
       text: "街中で色違いゲット！5000回目の遭遇でようやく…",
@@ -252,13 +252,13 @@ function seedPosts(): Post[] {
       likes: 128,
       liked: false,
       comments: [
-        { id: uid(), author: "KimRaidKing", text: "축하합니다! 부럽네요 🔥" },
-        { id: uid(), author: "阿杰打团", text: "运气太好了吧！" },
+        { id: "seed-c1", author: "KimRaidKing", text: "축하합니다! 부럽네요 🔥" },
+        { id: "seed-c2", author: "阿杰打团", text: "运气太好了吧！" },
       ],
-      createdAt: Date.now() - 600000,
+      createdAt: SEED_NOW - 600000,
     },
     {
-      id: uid(),
+      id: "seed-post-shadow",
       author: "NeonTrainer",
       kind: "shadow",
       text: "Shadow catch of the night — 96% and ready for the raid meta.",
@@ -267,11 +267,11 @@ function seedPosts(): Post[] {
       iv: { a: 15, d: 14, s: 14 },
       likes: 74,
       liked: false,
-      comments: [{ id: uid(), author: "MistyGo", text: "Nice one!" }],
-      createdAt: Date.now() - 1800000,
+      comments: [{ id: "seed-c3", author: "MistyGo", text: "Nice one!" }],
+      createdAt: SEED_NOW - 1800000,
     },
     {
-      id: uid(),
+      id: "seed-post-hundo",
       author: "wudi0693",
       kind: "hundo",
       text: "百分百个体值，直接满级培养！",
@@ -280,7 +280,7 @@ function seedPosts(): Post[] {
       likes: 210,
       liked: false,
       comments: [],
-      createdAt: Date.now() - 5400000,
+      createdAt: SEED_NOW - 5400000,
     },
   ];
 }
