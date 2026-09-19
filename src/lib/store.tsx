@@ -517,7 +517,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!account || frozenAccounts.includes(account.username)) {
       showToast("账号或密码错误");
       return false;
-      setAccounts([...accounts, { username: normalized, password, profile: nextProfile }]);
     }
     const nextUser: AuthUser = {
       username: account.username,
