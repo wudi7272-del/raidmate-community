@@ -331,7 +331,7 @@ export function PageShell({
   className,
 }: {
   children: React.ReactNode;
-  className?: string;
+  className?: string | undefined;
 }) {
   return (
     <div className={cn("min-h-screen", className)}>
