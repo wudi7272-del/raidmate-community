@@ -198,27 +198,16 @@ function seedFinanceOrders(): FinanceOrder[] {
       id: "ORD-24091",
       kind: "deposit",
       username: "MistyGo",
-      amount: 6,
-      coins: 300,
+      amount: 4.99,
+      coins: 500,
       status: "pending",
       proof: "",
       accountInfo: "USDT TRC20 · TQnexus-demo",
       contact: "Telegram @mistygo",
       createdAt: SEED_NOW - 3600000,
     },
-    {
-      id: "WD-811",
-      kind: "withdrawal",
-      username: "ShinyHunterJP",
-      amount: 150,
-      coins: 150,
-      status: "pending",
-      proof: "",
-      accountInfo: "Binance UID 884201",
-      contact: "Discord shiny.jp",
-      createdAt: SEED_NOW - 1800000,
-    },
   ];
+
 }
 
 function seedRooms(): Room[] {
