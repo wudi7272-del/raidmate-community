@@ -326,9 +326,15 @@ export function Toast() {
   );
 }
 
-export function PageShell({ children }: { children: React.ReactNode }) {
+export function PageShell({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="min-h-screen">
+    <div className={cn("min-h-screen", className)}>
       <TopNav />
       <main className="mx-auto max-w-5xl space-y-5 px-4 pb-36 pt-5">{children}</main>
       <BottomBar />
