@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { Coins, Gauge, ScanLine, Siren, Sparkles, Target, Trophy, Upload } from "lucide-react";
 import { PageShell } from "@/components/Shell";
 import { Badge, Button, Card, Field, Input, Select } from "@/components/ui-kit";
 import { useI18n } from "@/lib/i18n";
-import { generatePassword, useStore, type RaidMode, type Room } from "@/lib/store";
+import { FORMATIONS, generatePassword, useStore, type RaidMode, type Room } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import heroRaid from "@/assets/hero-raid.jpg";
 
@@ -13,8 +14,7 @@ export const Route = createFileRoute("/")({
       { title: "Raid Nexus — Pokémon GO 实时团战组队与排队系统" },
       {
         name: "description",
-        content:
-          "实时创建远程团战与现场近卡团战房间，VIP 优先排队、一键复制好友码、一键发车。",
+        content: "实时创建远程团战与现场近卡团战房间，VIP 优先排队、一键复制好友码、一键发车。",
       },
       { property: "og:title", content: "Raid Nexus — 实时团战组队" },
       {
@@ -30,7 +30,7 @@ const TYPES = ["Psychic", "Dragon", "Fire", "Water", "Grass", "Electric", "Dark"
 
 function RoomsPage() {
   const { t } = useI18n();
-  const { rooms } = useStore();
+  const { rooms, profile, sirens, leaderboard, bounties } = useStore();
   const [filter, setFilter] = useState<"all" | RaidMode>("all");
   const [creating, setCreating] = useState(false);
 
@@ -56,11 +56,42 @@ function RoomsPage() {
           <h1 className="mt-1 font-display text-2xl font-bold neon-text">{t("rooms.title")}</h1>
           <p className="text-xs text-muted-foreground">{t("rooms.subtitle")}</p>
           <div className="mt-3 flex gap-2">
-            <Badge tone="primary">{rooms.length} {t("openRooms")}</Badge>
-            <Badge tone="accent">{queued + 128} {t("onlineTrainers")}</Badge>
+            <Badge tone="primary">
+              {rooms.length} {t("openRooms")}
+            </Badge>
+            <Badge tone="accent">
+              {queued + 128} {t("onlineTrainers")}
+            </Badge>
           </div>
         </div>
       </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Card className="border-vip/30 bg-vip/5 sm:col-span-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              {t("wallet.title")}
+            </span>
+            <Coins className="h-4 w-4 text-vip" />
+          </div>
+          <div className="mt-2 font-display text-2xl font-bold text-vip">{profile.coins}</div>
+          <p className="mt-1 text-[11px] text-muted-foreground">{t("wallet.hint")}</p>
+        </Card>
+        <Card className="border-primary/30 bg-primary/5 sm:col-span-2">
+          <div className="flex items-center gap-2 text-primary">
+            <Siren className="h-4 w-4" />
+            <span className="text-xs font-bold">{t("siren.title")}</span>
+          </div>
+          <p className="mt-1 text-[11px] text-muted-foreground">{t("siren.hint")}</p>
+          {sirens[0] ? (
+            <div className="mt-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-xs text-accent">
+              {sirens[0].host}：{sirens[0].message}
+            </div>
+          ) : null}
+        </Card>
+      </div>
+
+      <LiveOpsPanel leaderboard={leaderboard} bounties={bounties} />
 
       <div className="flex items-center gap-2">
         {(["all", "remote", "local"] as const).map((f) => (
@@ -69,7 +100,9 @@ function RoomsPage() {
             onClick={() => setFilter(f)}
             className={cn(
               "tap-scale rounded-xl border border-border px-3 py-2 text-xs font-semibold",
-              filter === f ? "border-primary/60 bg-primary/15 text-primary" : "text-muted-foreground",
+              filter === f
+                ? "border-primary/60 bg-primary/15 text-primary"
+                : "text-muted-foreground",
             )}
           >
             {t(`rooms.filter.${f}`)}
@@ -95,22 +128,160 @@ function RoomsPage() {
   );
 }
 
+function LiveOpsPanel({
+  leaderboard,
+  bounties,
+}: {
+  leaderboard: ReturnType<typeof useStore>["leaderboard"];
+  bounties: ReturnType<typeof useStore>["bounties"];
+}) {
+  const { t } = useI18n();
+  const { createBounty, acceptBounty, settleBounty, profile } = useStore();
+  const [request, setRequest] = useState("");
+  const [boss, setBoss] = useState("Shadow Mewtwo");
+  const [reward, setReward] = useState(100);
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <Card className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <Trophy className="h-4 w-4 text-vip" />
+              {t("leaderboard.title")}
+            </div>
+            <p className="mt-1 text-[11px] text-muted-foreground">{t("leaderboard.subtitle")}</p>
+          </div>
+          <Badge tone="vip">TOP 3</Badge>
+        </div>
+        <div className="space-y-2">
+          {leaderboard.map((entry, index) => (
+            <div
+              key={entry.id}
+              className="flex items-center gap-3 rounded-xl bg-surface-2/45 px-3 py-2 text-xs"
+            >
+              <span className="font-display text-lg text-vip">0{index + 1}</span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-semibold">{entry.team}</div>
+                <div className="text-[10px] text-muted-foreground">
+                  {entry.boss} · {entry.seconds}s · {entry.badge}
+                </div>
+              </div>
+              <span className="font-display text-primary">+{entry.reward}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+      <Card className="space-y-3">
+        <div className="flex items-center gap-2 text-sm font-bold">
+          <Target className="h-4 w-4 text-accent" />
+          {t("bounty.title")}
+        </div>
+        <div className="grid grid-cols-[1fr_0.7fr_0.45fr] gap-2">
+          <Input
+            value={request}
+            onChange={(e) => setRequest(e.target.value)}
+            placeholder={t("bounty.placeholder")}
+          />
+          <Input value={boss} onChange={(e) => setBoss(e.target.value)} placeholder="Boss" />
+          <Input type="number" value={reward} onChange={(e) => setReward(Number(e.target.value))} />
+        </div>
+        <Button
+          size="sm"
+          className="w-full"
+          disabled={!request.trim()}
+          onClick={() => {
+            createBounty(request.trim(), boss.trim() || "Raid Boss", reward);
+            setRequest("");
+          }}
+        >
+          {t("bounty.publish")}
+        </Button>
+        <div className="space-y-2">
+          {bounties.slice(0, 3).map((bounty) => (
+            <div key={bounty.id} className="rounded-xl border border-border bg-surface-2/35 p-3">
+              <div className="flex items-start gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-semibold">{bounty.request}</div>
+                  <div className="mt-1 text-[10px] text-muted-foreground">
+                    {bounty.author} · {bounty.boss}
+                  </div>
+                </div>
+                <Badge tone={bounty.status === "completed" ? "muted" : "vip"}>
+                  {bounty.reward} 金
+                </Badge>
+              </div>
+              {bounty.status === "open" && bounty.author !== profile.trainerName ? (
+                <Button
+                  size="sm"
+                  variant="accent"
+                  className="mt-2"
+                  onClick={() => acceptBounty(bounty.id)}
+                >
+                  {t("bounty.accept")}
+                </Button>
+              ) : null}
+              {bounty.status === "accepted" && bounty.acceptedBy === profile.trainerName ? (
+                <Button size="sm" className="mt-2" onClick={() => settleBounty(bounty.id)}>
+                  {t("bounty.settle")}
+                </Button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 function CreateRoomForm({ onClose, types }: { onClose: () => void; types: string[] }) {
   const { t } = useI18n();
   const { profile, createRoom, showToast } = useStore();
   const [boss, setBoss] = useState("");
+  const [gym, setGym] = useState("");
   const [cp, setCp] = useState(45000);
   const [type, setType] = useState(types[0] ?? "Psychic");
   const [minutes, setMinutes] = useState(45);
   const [mode, setMode] = useState<RaidMode>("remote");
   const [capacity, setCapacity] = useState(10);
   const [password, setPassword] = useState(generatePassword());
+  const [scanning, setScanning] = useState(false);
+
+  const handleScreenshot = (file?: File) => {
+    if (!file) return;
+    setScanning(true);
+    window.setTimeout(() => {
+      setBoss("Mega Rayquaza");
+      setGym("Central Plaza Gym");
+      setMinutes(32);
+      setType("Dragon");
+      setScanning(false);
+      showToast(t("form.ocrDone"));
+    }, 650);
+  };
 
   return (
     <Card className="space-y-3 glow-primary">
       <h2 className="font-display text-base font-bold text-primary">{t("form.create")}</h2>
+      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/35 bg-primary/10 px-3 py-3 text-xs font-semibold text-primary transition hover:bg-primary/15">
+        {scanning ? <ScanLine className="h-4 w-4 animate-pulse" /> : <Upload className="h-4 w-4" />}
+        {scanning ? t("form.ocrScanning") : t("form.ocrUpload")}
+        <input
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          onChange={(event) => handleScreenshot(event.target.files?.[0])}
+        />
+      </label>
       <Field label={t("form.bossName")}>
         <Input value={boss} onChange={(e) => setBoss(e.target.value)} placeholder="Mewtwo" />
+      </Field>
+      <Field label={t("form.gym")}>
+        <Input
+          value={gym}
+          onChange={(e) => setGym(e.target.value)}
+          placeholder="Central Plaza Gym"
+        />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label={t("form.cp")}>
@@ -180,6 +351,7 @@ function CreateRoomForm({ onClose, types }: { onClose: () => void; types: string
           onClick={() => {
             createRoom({
               boss: boss.trim() || "Mewtwo",
+              gym: gym.trim() || "Raid Nexus Gym",
               cp,
               type,
               minutes,
@@ -205,12 +377,29 @@ function CreateRoomForm({ onClose, types }: { onClose: () => void; types: string
 
 function RoomCard({ room }: { room: Room }) {
   const { t } = useI18n();
-  const { profile, isAdmin, copy, joinRoom, leaveRoom, toggleReady, kick, launchRoom, removeRoom } =
-    useStore();
+  const {
+    profile,
+    isAdmin,
+    copy,
+    joinRoom,
+    leaveRoom,
+    toggleReady,
+    kick,
+    launchRoom,
+    removeRoom,
+    broadcastSiren,
+    setFormation,
+    toggleLottery,
+    joinLottery,
+    settleRoom,
+  } = useStore();
   const isHost = room.hostName === profile.trainerName;
   const canManage = isHost || isAdmin;
   const inQueue = room.queue.some((m) => m.isSelf);
   const full = room.queue.length >= room.capacity;
+  const formation = FORMATIONS.find((item) => item.id === room.formationId) ?? FORMATIONS[0]!;
+  const totalDps = formation.dps + room.queue.reduce((sum, member) => sum + (member.dps ?? 0), 0);
+  const estimatedMinutes = Math.max(1, Math.round((room.cp / totalDps) * 0.7));
 
   return (
     <Card className="space-y-3 overflow-hidden">
@@ -237,6 +426,37 @@ function RoomCard({ room }: { room: Room }) {
       <p className="rounded-xl bg-surface-2/50 px-3 py-2 text-[11px] leading-snug text-muted-foreground">
         {t(`rooms.mode.${room.mode}.desc`)}
       </p>
+
+      <div className="grid gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 sm:grid-cols-[1fr_auto]">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-bold text-primary">
+            <Gauge className="h-3.5 w-3.5" />
+            {t("formation.title")}
+          </div>
+          <Select
+            className="mt-2"
+            value={room.formationId}
+            onChange={(event) => setFormation(room.id, event.target.value)}
+          >
+            {FORMATIONS.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name} · {item.dps} DPS
+              </option>
+            ))}
+          </Select>
+          <p className="mt-1 text-[10px] text-muted-foreground">{formation.description}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-center sm:min-w-44">
+          <div className="rounded-lg bg-background/50 px-2 py-2">
+            <div className="font-display text-lg font-bold text-primary">{totalDps}</div>
+            <div className="text-[10px] text-muted-foreground">{t("formation.dps")}</div>
+          </div>
+          <div className="rounded-lg bg-background/50 px-2 py-2">
+            <div className="font-display text-lg font-bold text-accent">{estimatedMinutes}m</div>
+            <div className="text-[10px] text-muted-foreground">{t("formation.estimate")}</div>
+          </div>
+        </div>
+      </div>
 
       {room.mode === "local" ? (
         <button
@@ -337,12 +557,18 @@ function RoomCard({ room }: { room: Room }) {
         <Button
           size="sm"
           variant="ghost"
-          onClick={() => copy(room.queue.map((m) => `${m.name}: ${m.code}`).join("\n"), t("copied"))}
+          onClick={() =>
+            copy(room.queue.map((m) => `${m.name}: ${m.code}`).join("\n"), t("copied"))
+          }
         >
           {t("rooms.copyAllCodes")}
         </Button>
         {canManage ? (
           <>
+            <Button size="sm" variant="accent" onClick={() => broadcastSiren(room.id)}>
+              <Siren className="h-3.5 w-3.5" />
+              {t("siren.title")} · 30
+            </Button>
             <Button
               size="sm"
               variant="accent"
@@ -355,6 +581,50 @@ function RoomCard({ room }: { room: Room }) {
               {isAdmin && !isHost ? t("rooms.adminClean") : t("rooms.disband")}
             </Button>
           </>
+        ) : null}
+      </div>
+
+      <div className="rounded-xl border border-vip/25 bg-vip/5 p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-vip">
+            <Sparkles className="h-3.5 w-3.5" />
+            {t("lottery.title")}{" "}
+            <Badge tone="vip">
+              {room.lottery.pot} {t("wallet.coins")}
+            </Badge>
+          </div>
+          <button
+            className={cn(
+              "rounded-lg px-2 py-1 text-[10px] font-semibold",
+              room.lottery.enabled ? "bg-vip/20 text-vip" : "bg-surface-2 text-muted-foreground",
+            )}
+            onClick={() => toggleLottery(room.id)}
+          >
+            {room.lottery.enabled ? t("lottery.enabled") : t("lottery.enable")}
+          </button>
+        </div>
+        <div className="mt-1 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
+          <span>{t("lottery.hint")}</span>
+          {room.lottery.enabled && !room.lottery.entries.includes(profile.trainerName) ? (
+            <Button size="sm" variant="vip" onClick={() => joinLottery(room.id)}>
+              {t("lottery.join")}
+            </Button>
+          ) : null}
+        </div>
+        {room.lottery.winner ? (
+          <div className="mt-2 text-[11px] font-semibold text-vip">
+            {t("lottery.winner")}：{room.lottery.winner}
+          </div>
+        ) : null}
+        {canManage && room.lottery.enabled && room.lottery.pot > 0 ? (
+          <div className="mt-2 flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => settleRoom(room.id, "shiny")}>
+              {t("lottery.shinySettle")}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => settleRoom(room.id, "normal")}>
+              {t("lottery.normalDrop")}
+            </Button>
+          </div>
         ) : null}
       </div>
     </Card>

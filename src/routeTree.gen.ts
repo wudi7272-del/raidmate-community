@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as SuperAdminRouteImport } from './routes/super-admin'
 import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as WallRouteImport } from './routes/wall'
 
@@ -19,9 +21,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuperAdminRoute = SuperAdminRouteImport.update({
+  id: '/super-admin',
+  path: '/super-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsRoute = ToolsRouteImport.update({
@@ -37,34 +49,49 @@ const WallRoute = WallRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/profile': typeof ProfileRoute
+  '/super-admin': typeof SuperAdminRoute
   '/tools': typeof ToolsRoute
   '/wall': typeof WallRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/profile': typeof ProfileRoute
+  '/super-admin': typeof SuperAdminRoute
   '/tools': typeof ToolsRoute
   '/wall': typeof WallRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/profile': typeof ProfileRoute
+  '/super-admin': typeof SuperAdminRoute
   '/tools': typeof ToolsRoute
   '/wall': typeof WallRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/profile' | '/tools' | '/wall'
+  fullPaths: '/' | '/admin' | '/profile' | '/super-admin' | '/tools' | '/wall'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/profile' | '/tools' | '/wall'
-  id: '__root__' | '/' | '/profile' | '/tools' | '/wall'
+  to: '/' | '/admin' | '/profile' | '/super-admin' | '/tools' | '/wall'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/profile'
+    | '/super-admin'
+    | '/tools'
+    | '/wall'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   ProfileRoute: typeof ProfileRoute
+  SuperAdminRoute: typeof SuperAdminRoute
   ToolsRoute: typeof ToolsRoute
   WallRoute: typeof WallRoute
 }
@@ -78,11 +105,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/super-admin': {
+      id: '/super-admin'
+      path: '/super-admin'
+      fullPath: '/super-admin'
+      preLoaderRoute: typeof SuperAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools': {
@@ -104,7 +145,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   ProfileRoute: ProfileRoute,
+  SuperAdminRoute: SuperAdminRoute,
   ToolsRoute: ToolsRoute,
   WallRoute: WallRoute,
 }
