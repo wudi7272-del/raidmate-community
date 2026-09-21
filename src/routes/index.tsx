@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Coins, Gauge, ScanLine, Siren, Sparkles, Target, Trophy, Upload } from "lucide-react";
 import { PageShell } from "@/components/Shell";
 import { Badge, Button, Card, Field, Input, Select } from "@/components/ui-kit";
@@ -254,11 +254,18 @@ function CreateRoomForm({ onClose, types }: { onClose: () => void; types: string
   const [capacity, setCapacity] = useState(10);
   const [password, setPassword] = useState(generatePassword());
   const [scanning, setScanning] = useState(false);
+  const scanTimerRef = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
+  }, []);
 
   const handleScreenshot = (file?: File) => {
     if (!file) return;
     setScanning(true);
-    window.setTimeout(() => {
+    if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
+    scanTimerRef.current = window.setTimeout(() => {
+      scanTimerRef.current = null;
       setBoss("Mega Rayquaza");
       setGym("Central Plaza Gym");
       setMinutes(32);

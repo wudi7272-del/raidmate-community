@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 export type RaidMode = "remote" | "local";
 export type PostKind = "shiny" | "ditto" | "shadow" | "hundo";
@@ -377,6 +377,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [rooms, setRooms] = useState<Room[]>(() => readStored("raid-nexus-rooms", seedRooms()));
   const [posts, setPosts] = useState<Post[]>(() => seedPosts());
   const [toast, setToast] = useState<string | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
   const [sirens, setSirens] = useState<Siren[]>([]);
   const [leaderboard] = useState<SpeedrunEntry[]>([
     {
@@ -472,9 +473,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   const showToast = (msg: string) => {
+    if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
     setToast(msg);
-    window.setTimeout(() => setToast(null), 1800);
+    toastTimerRef.current = window.setTimeout(() => {
+      toastTimerRef.current = null;
+      setToast(null);
+    }, 1800);
   };
+
+  useEffect(() => () => {
+    if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+  }, []);
 
   const copy = (text: string, msg: string) => {
     void navigator.clipboard?.writeText(text);

@@ -31,6 +31,7 @@ function ToolsPage() {
   const [alertEnabled, setAlertEnabled] = useState(true);
   const [floating, setFloating] = useState(false);
   const uploadRef = useRef<HTMLInputElement>(null);
+  const scanTimerRef = useRef<number | null>(null);
 
   const pct = Math.round(((a + d + s) / 45) * 100);
   const cpm = 0.094 + (level - 1) * 0.0155;
@@ -43,7 +44,9 @@ function ToolsPage() {
       const data = event.data?.type === "pokemon-go-screen-capture" ? event.data : null;
       if (!data) return;
       setScanning(true);
-      window.setTimeout(() => {
+      if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
+      scanTimerRef.current = window.setTimeout(() => {
+        scanTimerRef.current = null;
         setScanning(false);
         if (typeof data.cp === "number") setCp(data.cp);
         if (typeof data.hp === "number") setHp(data.hp);
@@ -55,6 +58,7 @@ function ToolsPage() {
     return () => {
       window.removeEventListener("message", receiveCapture);
       window.removeEventListener("onNativeScreenCapture", receiveCapture as EventListener);
+      if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
     };
   }, []);
 
@@ -67,7 +71,9 @@ function ToolsPage() {
 
   const handleUpload = () => {
     setScanning(true);
-    window.setTimeout(() => {
+    if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
+    scanTimerRef.current = window.setTimeout(() => {
+      scanTimerRef.current = null;
       setScanning(false);
       setSpecies("暗影超梦");
       setCp(1821);
