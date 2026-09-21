@@ -36,10 +36,20 @@ export type Bounty = {
   request: string;
   reward: number;
   boss: string;
-  status: "open" | "accepted" | "completed";
+  status: "open" | "accepted" | "completed" | "cancelled";
   acceptedBy?: string;
+  acceptedRole?: string;
 };
-export type Lottery = { enabled: boolean; entries: string[]; winner?: string; pot: number };
+export type Lottery = {
+  enabled: boolean;
+  entries: string[];
+  winner?: string;
+  winners?: string[];
+  proof?: string;
+  pot: number;
+  closed?: boolean;
+};
+
 
 export type Room = {
   id: string;
@@ -94,7 +104,7 @@ export type AuthUser = {
 
 export type FinanceOrder = {
   id: string;
-  kind: "deposit" | "withdrawal";
+  kind: "deposit";
   username: string;
   amount: number;
   coins: number;
@@ -105,6 +115,22 @@ export type FinanceOrder = {
   createdAt: number;
 };
 
+export type CoinLedger = {
+  id: string;
+  username: string;
+  delta: number;
+  note: string;
+  operator: string;
+  createdAt: number;
+};
+
+export const COIN_PACKAGES = [
+  { id: "p1", usd: 0.99, coins: 100 },
+  { id: "p2", usd: 4.99, coins: 500 },
+  { id: "p3", usd: 9.99, coins: 1000 },
+  { id: "p4", usd: 19.99, coins: 2000 },
+] as const;
+
 export type Account = { username: string; password: string; profile: Profile };
 
 type StoredAccount = {
@@ -112,6 +138,7 @@ type StoredAccount = {
   password: string;
   profile: Profile;
 };
+
 
 export const FORMATIONS: Formation[] = [
   { id: "mega", name: "Mega 核心爆发", description: "高压速推，适合竞速榜冲刺", dps: 920 },
@@ -162,39 +189,31 @@ function readStored<T>(key: string, fallback: T): T {
   }
 }
 
+// Fixed base time so SSR and client render identical seed data (no hydration mismatch).
+const SEED_NOW = Date.parse("2026-09-19T06:00:00Z");
+
 function seedFinanceOrders(): FinanceOrder[] {
   return [
     {
       id: "ORD-24091",
       kind: "deposit",
       username: "MistyGo",
-      amount: 6,
-      coins: 300,
+      amount: 4.99,
+      coins: 500,
       status: "pending",
       proof: "",
       accountInfo: "USDT TRC20 · TQnexus-demo",
       contact: "Telegram @mistygo",
-      createdAt: Date.now() - 3600000,
-    },
-    {
-      id: "WD-811",
-      kind: "withdrawal",
-      username: "ShinyHunterJP",
-      amount: 150,
-      coins: 150,
-      status: "pending",
-      proof: "",
-      accountInfo: "Binance UID 884201",
-      contact: "Discord shiny.jp",
-      createdAt: Date.now() - 1800000,
+      createdAt: SEED_NOW - 3600000,
     },
   ];
+
 }
 
 function seedRooms(): Room[] {
   return [
     {
-      id: uid(),
+      id: "seed-room-mewtwo",
       boss: "Mewtwo",
       gym: "Shibuya Crossing Gym",
       cp: 54148,
@@ -203,20 +222,20 @@ function seedRooms(): Room[] {
       mode: "remote",
       capacity: 10,
       hostName: "wudi0693",
-      hostCode: randCode(),
-      password: generatePassword(),
+      hostCode: "5107 7347 6209",
+      password: "Pikachu-Bulbasaur-Charmander",
       launched: false,
-      createdAt: Date.now() - 120000,
+      createdAt: SEED_NOW - 120000,
       queue: [
-        { id: uid(), name: "ShinyHunterJP", code: randCode(), vip: true, ready: true, dps: 840 },
-        { id: uid(), name: "KimRaidKing", code: randCode(), vip: false, ready: true, dps: 710 },
-        { id: uid(), name: "阿杰打团", code: randCode(), vip: false, ready: false, dps: 620 },
+        { id: "seed-m1", name: "ShinyHunterJP", code: "2841 9063 5572", vip: true, ready: true, dps: 840 },
+        { id: "seed-m2", name: "KimRaidKing", code: "7395 1128 4460", vip: false, ready: true, dps: 710 },
+        { id: "seed-m3", name: "阿杰打团", code: "6602 3814 9927", vip: false, ready: false, dps: 620 },
       ],
       formationId: "counter",
       lottery: { enabled: true, entries: ["ShinyHunterJP", "KimRaidKing"], pot: 10 },
     },
     {
-      id: uid(),
+      id: "seed-room-rayquaza",
       boss: "Rayquaza",
       gym: "KLCC Park Gym",
       cp: 51968,
@@ -225,11 +244,11 @@ function seedRooms(): Room[] {
       mode: "local",
       capacity: 5,
       hostName: "NeonTrainer",
-      hostCode: randCode(),
-      password: generatePassword(),
+      hostCode: "3358 7704 1269",
+      password: "Eevee-Snorlax-Gengar",
       launched: false,
-      createdAt: Date.now() - 300000,
-      queue: [{ id: uid(), name: "MistyGo", code: randCode(), vip: false, ready: false, dps: 650 }],
+      createdAt: SEED_NOW - 300000,
+      queue: [{ id: "seed-m4", name: "MistyGo", code: "4471 8259 0633", vip: false, ready: false, dps: 650 }],
       formationId: "weather",
       lottery: { enabled: false, entries: [], pot: 0 },
     },
@@ -239,7 +258,7 @@ function seedRooms(): Room[] {
 function seedPosts(): Post[] {
   return [
     {
-      id: uid(),
+      id: "seed-post-shiny",
       author: "ShinyHunterJP",
       kind: "shiny",
       text: "街中で色違いゲット！5000回目の遭遇でようやく…",
@@ -249,13 +268,13 @@ function seedPosts(): Post[] {
       likes: 128,
       liked: false,
       comments: [
-        { id: uid(), author: "KimRaidKing", text: "축하합니다! 부럽네요 🔥" },
-        { id: uid(), author: "阿杰打团", text: "运气太好了吧！" },
+        { id: "seed-c1", author: "KimRaidKing", text: "축하합니다! 부럽네요 🔥" },
+        { id: "seed-c2", author: "阿杰打团", text: "运气太好了吧！" },
       ],
-      createdAt: Date.now() - 600000,
+      createdAt: SEED_NOW - 600000,
     },
     {
-      id: uid(),
+      id: "seed-post-shadow",
       author: "NeonTrainer",
       kind: "shadow",
       text: "Shadow catch of the night — 96% and ready for the raid meta.",
@@ -264,11 +283,11 @@ function seedPosts(): Post[] {
       iv: { a: 15, d: 14, s: 14 },
       likes: 74,
       liked: false,
-      comments: [{ id: uid(), author: "MistyGo", text: "Nice one!" }],
-      createdAt: Date.now() - 1800000,
+      comments: [{ id: "seed-c3", author: "MistyGo", text: "Nice one!" }],
+      createdAt: SEED_NOW - 1800000,
     },
     {
-      id: uid(),
+      id: "seed-post-hundo",
       author: "wudi0693",
       kind: "hundo",
       text: "百分百个体值，直接满级培养！",
@@ -277,7 +296,7 @@ function seedPosts(): Post[] {
       likes: 210,
       liked: false,
       comments: [],
-      createdAt: Date.now() - 5400000,
+      createdAt: SEED_NOW - 5400000,
     },
   ];
 }
@@ -517,7 +536,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!account || frozenAccounts.includes(account.username)) {
       showToast("账号或密码错误");
       return false;
-      setAccounts([...accounts, { username: normalized, password, profile: nextProfile }]);
     }
     const nextUser: AuthUser = {
       username: account.username,
@@ -533,7 +551,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    const submitDeposit = (
+    localStorage.removeItem("raid-nexus-auth");
+    setAuthUser(null);
+    setProfileState(defaultProfile);
+  };
+
+  const submitDeposit = (
       input: Omit<FinanceOrder, "id" | "kind" | "username" | "status" | "createdAt">,
     ) => {
       const order: FinanceOrder = {
@@ -630,11 +653,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const resetAccountPassword = (username: string, password: string) => {
       const account = accounts.find((item) => item.username === username);
       if (account) updateAccount(username, account.profile, password);
-    };
-    localStorage.removeItem("raid-nexus-auth");
-    setAuthUser(null);
-    setProfileState(defaultProfile);
   };
+
+  const isAccountFrozen = (username: string) => frozenAccounts.includes(username);
+
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -930,8 +952,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ),
         ),
       removePost: (postId) => setPosts((prev) => prev.filter((p) => p.id !== postId)),
+      accounts,
+      frozenAccounts,
+      financeOrders,
+      submitDeposit,
+      submitWithdrawal,
+      reviewFinanceOrder,
+      toggleFrozenAccount,
+      updateAccount,
+      toggleAccountVip,
+      resetAccountPassword,
+      isAccountFrozen,
     }),
     [
+      accounts,
+      frozenAccounts,
+      financeOrders,
       profile,
       authUser,
       isAuthenticated,

@@ -399,7 +399,7 @@ function OrderDialog({
   close,
 }: {
   order: FinanceOrder;
-  account?: Account;
+  account?: Account | undefined;
   close: () => void;
 }) {
   return (

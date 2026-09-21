@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   AlertTriangle,
-  Clipboard,
+  ChevronDown,
   Gamepad2,
+  Languages,
   PictureInPicture2,
   Swords,
   Sparkles,
@@ -11,7 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useState } from "react";
-import { useI18n } from "@/lib/i18n";
+import { LANGS, useI18n } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
 import { Badge, Button, Input } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
@@ -113,6 +114,44 @@ export function TopNav() {
         />
       ) : null}
     </>
+  );
+}
+
+function LanguageSwitcher() {
+  const { lang, setLang } = useI18n();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="tap-scale flex items-center gap-1 rounded-xl border border-border bg-surface-2/60 px-2.5 py-2 text-xs font-semibold"
+      >
+        <Languages className="h-3.5 w-3.5" />
+        {LANGS.find((l) => l.code === lang)?.flag}
+        <ChevronDown className="h-3 w-3 text-muted-foreground" />
+      </button>
+      {open ? (
+        <div className="absolute right-0 z-50 mt-2 w-36 overflow-hidden rounded-xl border border-border bg-popover/95 shadow-xl backdrop-blur-xl rise-in">
+          {LANGS.map((item) => (
+            <button
+              key={item.code}
+              onClick={() => {
+                setLang(item.code);
+                setOpen(false);
+              }}
+              className={cn(
+                "flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold",
+                item.code === lang ? "bg-primary/15 text-primary" : "text-muted-foreground",
+              )}
+            >
+              <span>{item.flag}</span>
+              {item.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -287,9 +326,15 @@ export function Toast() {
   );
 }
 
-export function PageShell({ children }: { children: React.ReactNode }) {
+export function PageShell({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string | undefined;
+}) {
   return (
-    <div className="min-h-screen">
+    <div className={cn("min-h-screen", className)}>
       <TopNav />
       <main className="mx-auto max-w-5xl space-y-5 px-4 pb-36 pt-5">{children}</main>
       <BottomBar />
