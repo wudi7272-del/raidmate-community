@@ -23,16 +23,8 @@ export const Route = createFileRoute("/profile")({
 
 function ProfilePage() {
   const { t } = useI18n();
-  const {
-    profile,
-    setProfile,
-    isAdmin,
-    copy,
-    showToast,
-    addCoins,
-    buyVip,
-    submitDeposit,
-  } = useStore();
+  const { profile, setProfile, isAdmin, copy, showToast, addCoins, buyVip, submitDeposit } =
+    useStore();
   const [draft, setDraft] = useState(profile);
   const [monetizationOpen, setMonetizationOpen] = useState(false);
   const [financeMode, setFinanceMode] = useState<"deposit">("deposit");
@@ -196,7 +188,12 @@ function ProfilePage() {
                 </select>
               </Field>
               <Field label="到账金币">
-                <Input type="number" min="1" value={financeCoins} onChange={(event) => setFinanceCoins(event.target.value)} />
+                <Input
+                  type="number"
+                  min="1"
+                  value={financeCoins}
+                  onChange={(event) => setFinanceCoins(event.target.value)}
+                />
               </Field>
               <Field label="收款账号信息">
                 <Input

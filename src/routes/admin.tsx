@@ -398,10 +398,7 @@ function OrderDialog({
   close: () => void;
 }) {
   return (
-    <Dialog
-      title={`${order.id} · 充值订单`}
-      close={close}
-    >
+    <Dialog title={`${order.id} · 充值订单`} close={close}>
       <div className="grid gap-2 text-xs sm:grid-cols-2">
         <Info label="用户名" value={order.username} />
         <Info label="训练家代码" value={account?.profile.friendCode ?? "未找到"} />

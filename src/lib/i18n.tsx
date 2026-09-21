@@ -187,7 +187,8 @@ const en: Dict = {
   "lottery.title": "Shiny Lucky Pool",
   "lottery.enabled": "Enabled",
   "lottery.enable": "Enable pool",
-  "lottery.hint": "Enter with 5 coins before launch; after proof, all Shiny / 100% IV participants split the pool",
+  "lottery.hint":
+    "Enter with 5 coins before launch; after proof, all Shiny / 100% IV participants split the pool",
   "lottery.join": "Enter for 5",
   "lottery.winner": "Winner",
   "lottery.shinySettle": "Verify names and pay",

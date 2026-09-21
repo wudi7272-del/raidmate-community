@@ -7,10 +7,16 @@ import "./styles.css";
 
 const router = getRouter();
 
-function App() {
+export function App() {
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
-      console.error("[global error]", event.error ?? event.message, event.filename, event.lineno, event.colno);
+      console.error(
+        "[global error]",
+        event.error ?? event.message,
+        event.filename,
+        event.lineno,
+        event.colno,
+      );
     };
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       console.error("[unhandled promise rejection]", event.reason);

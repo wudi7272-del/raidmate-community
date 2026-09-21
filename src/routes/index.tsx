@@ -136,7 +136,7 @@ function LiveOpsPanel({
   bounties: ReturnType<typeof useStore>["bounties"];
 }) {
   const { t } = useI18n();
-  const { createBounty, acceptBounty, settleBounty, profile } = useStore();
+  const { createBounty, acceptBounty, cancelBounty, settleBounty, profile } = useStore();
   const [request, setRequest] = useState("");
   const [boss, setBoss] = useState("Shadow Mewtwo");
   const [reward, setReward] = useState(100);
@@ -210,17 +210,16 @@ function LiveOpsPanel({
                       {bounty.author} · {bounty.boss}
                     </div>
                   </div>
-                  <Badge tone={bounty.status === "completed" ? "muted" : "vip"}>{bounty.reward} 金</Badge>
+                  <Badge tone={bounty.status === "completed" ? "muted" : "vip"}>
+                    {bounty.reward} 金
+                  </Badge>
                 </div>
                 {bounty.author === profile.trainerName ? (
                   <Button
                     size="sm"
                     variant="ghost"
                     className="mt-2"
-                    onClick={() => {
-                      const { cancelBounty } = useStore();
-                      cancelBounty(bounty.id);
-                    }}
+                    onClick={() => cancelBounty(bounty.id)}
                   >
                     取消悬赏
                   </Button>
@@ -256,9 +255,12 @@ function CreateRoomForm({ onClose, types }: { onClose: () => void; types: string
   const [scanning, setScanning] = useState(false);
   const scanTimerRef = useRef<number | null>(null);
 
-  useEffect(() => () => {
-    if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
+    },
+    [],
+  );
 
   const handleScreenshot = (file?: File) => {
     if (!file) return;

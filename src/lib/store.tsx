@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 export type RaidMode = "remote" | "local";
 export type PostKind = "shiny" | "ditto" | "shadow" | "hundo";
@@ -481,9 +489,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }, 1800);
   };
 
-  useEffect(() => () => {
-    if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+    },
+    [],
+  );
 
   const copy = (text: string, msg: string) => {
     void navigator.clipboard?.writeText(text);
@@ -518,7 +529,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const register = (username: string, password: string, trainerCode: string) => {
     const normalized = username.trim();
-    const existing = JSON.parse(localStorage.getItem("raid-nexus-accounts") ?? "[]") as StoredAccount[];
+    const existing = JSON.parse(
+      localStorage.getItem("raid-nexus-accounts") ?? "[]",
+    ) as StoredAccount[];
     if (
       !normalized ||
       normalized.toLowerCase() === ADMIN_USERNAME ||
@@ -559,9 +572,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       showToast("管理员登录成功");
       return true;
     }
-    const existing = JSON.parse(localStorage.getItem("raid-nexus-accounts") ?? "[]") as StoredAccount[];
+    const existing = JSON.parse(
+      localStorage.getItem("raid-nexus-accounts") ?? "[]",
+    ) as StoredAccount[];
     const account = existing.find(
-      (item) => item.username.toLowerCase() === normalized.toLowerCase() && item.password === password,
+      (item) =>
+        item.username.toLowerCase() === normalized.toLowerCase() && item.password === password,
     );
     if (!account || frozenAccounts.includes(account.username)) {
       showToast("账号或密码错误");
@@ -613,7 +629,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (account) updateAccount(username, account.profile, password);
   };
 
-  const submitDeposit = (input: Omit<FinanceOrder, "id" | "kind" | "username" | "status" | "createdAt">) => {
+  const submitDeposit = (
+    input: Omit<FinanceOrder, "id" | "kind" | "username" | "status" | "createdAt">,
+  ) => {
     const order: FinanceOrder = {
       ...input,
       id: `ORD-${Date.now().toString().slice(-6)}`,
@@ -635,7 +653,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (decision === "approved") {
       const next = accounts.map((account) =>
         account.profile.trainerName === order.username || account.username === order.username
-          ? { ...account, profile: { ...account.profile, coins: account.profile.coins + order.coins } }
+          ? {
+              ...account,
+              profile: { ...account.profile, coins: account.profile.coins + order.coins },
+            }
           : account,
       );
       replaceAccounts(next);
@@ -669,7 +690,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       },
       ...current,
     ]);
-    if (authUser?.username === username) setProfileState((current) => ({ ...current, coins: nextCoins }));
+    if (authUser?.username === username)
+      setProfileState((current) => ({ ...current, coins: nextCoins }));
     showToast(`余额已调整 ${parsed > 0 ? "+" : ""}${parsed} 金币`);
   };
 
@@ -769,9 +791,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const bounty = bounties.find((item) => item.id === bountyId);
         if (!bounty || bounty.status !== "open" || bounty.author !== profile.trainerName) return;
         setBounties((prev) =>
-          prev.map((item) =>
-            item.id === bountyId ? { ...item, status: "cancelled" } : item,
-          ),
+          prev.map((item) => (item.id === bountyId ? { ...item, status: "cancelled" } : item)),
         );
         setProfileState((current) => ({ ...current, coins: current.coins + bounty.reward }));
         setBillingRecords((current) => [
@@ -805,10 +825,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       },
       settleBounty: (bountyId) => {
         const bounty = bounties.find((item) => item.id === bountyId);
-        if (!bounty || bounty.status !== "accepted" || bounty.author !== profile.trainerName) return;
+        if (!bounty || bounty.status !== "accepted" || bounty.author !== profile.trainerName)
+          return;
         const target = accounts.find(
           (account) =>
-            account.profile.trainerName === bounty.acceptedBy || account.username === bounty.acceptedUsername,
+            account.profile.trainerName === bounty.acceptedBy ||
+            account.username === bounty.acceptedUsername,
         );
         setBounties((prev) =>
           prev.map((item) => (item.id === bountyId ? { ...item, status: "completed" } : item)),
@@ -816,7 +838,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setBillingRecords((current) => [
           {
             id: uid(),
-            username: target?.username ?? bounty.acceptedUsername ?? bounty.acceptedBy ?? profile.trainerName,
+            username:
+              target?.username ??
+              bounty.acceptedUsername ??
+              bounty.acceptedBy ??
+              profile.trainerName,
             type: "reward",
             amount: bounty.reward,
             reason: `悬赏结算：${bounty.request}`,
@@ -828,7 +854,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (target) {
           const next = accounts.map((account) =>
             account.username === target.username
-              ? { ...account, profile: { ...account.profile, coins: account.profile.coins + bounty.reward } }
+              ? {
+                  ...account,
+                  profile: { ...account.profile, coins: account.profile.coins + bounty.reward },
+                }
               : account,
           );
           replaceAccounts(next);
@@ -852,7 +881,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ),
       joinLottery: (roomId) => {
         const room = rooms.find((item) => item.id === roomId);
-        if (!room || room.launched || !room.lottery.enabled || room.lottery.entries.includes(profile.trainerName)) {
+        if (
+          !room ||
+          room.launched ||
+          !room.lottery.enabled ||
+          room.lottery.entries.includes(profile.trainerName)
+        ) {
           showToast("彩池已关闭或你已参与");
           return;
         }
@@ -937,7 +971,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           },
           ...current,
         ]);
-        showToast(`${winners.join("、")} 平分彩池 ${room.lottery.pot} 金币，单人分得 ${prize} 金币`);
+        showToast(
+          `${winners.join("、")} 平分彩池 ${room.lottery.pot} 金币，单人分得 ${prize} 金币`,
+        );
       },
       addCoins: (amount, reason) => {
         setProfileState((current) => {
@@ -1113,9 +1149,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       bounties,
       billingRecords,
       accounts,
-      frozenAccounts,
-      financeOrders,
       copy,
+      broadcastSiren,
+      isAccountFrozen,
+      login,
+      manualAdjustBalance,
+      register,
+      resetAccountPassword,
+      submitDeposit,
+      toggleAccountVip,
+      updateAccount,
     ],
   );
 

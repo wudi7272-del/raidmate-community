@@ -2,7 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Heart, MapPin, MessageCircle } from "lucide-react";
 import { PageShell } from "@/components/Shell";
-import { Badge, Button, Card, Field, Input, SectionTitle, Select, Textarea } from "@/components/ui-kit";
+import {
+  Badge,
+  Button,
+  Card,
+  Field,
+  Input,
+  SectionTitle,
+  Select,
+  Textarea,
+} from "@/components/ui-kit";
 import { useI18n } from "@/lib/i18n";
 import { useStore, type Post, type PostKind } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -72,7 +81,9 @@ function WallPage() {
               onClick={() => setKind(k)}
               className={cn(
                 "tap-scale rounded-xl border px-3 py-1.5 text-xs font-semibold",
-                kind === k ? "border-primary/60 bg-primary/15 text-primary" : "border-border text-muted-foreground",
+                kind === k
+                  ? "border-primary/60 bg-primary/15 text-primary"
+                  : "border-border text-muted-foreground",
               )}
             >
               {t(`wall.kind.${k}`)}
@@ -81,7 +92,11 @@ function WallPage() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label={t("wall.location")}>
-            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="KLCC" />
+            <Input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="KLCC"
+            />
           </Field>
           <Field label={t("wall.image")}>
             <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-[11px] text-primary">
@@ -143,7 +158,10 @@ function PostCard({ post }: { post: Post }) {
             <span className="text-sm font-semibold">{post.author}</span>
             <Badge tone={kindTone[post.kind]}>{t(`wall.kind.${post.kind}`)}</Badge>
           </div>
-          <span className="flex items-center gap-1 text-[11px] text-muted-foreground"><MapPin className="h-3 w-3" />{post.location}</span>
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            <MapPin className="h-3 w-3" />
+            {post.location}
+          </span>
         </div>
         {isAdmin || post.author === profile.trainerName ? (
           <button

@@ -13,7 +13,10 @@ export const Route = createFileRoute("/tools")({
         content: "快速估算宝可梦个体值、等级与进化后战力，团战前一秒决策。",
       },
       { property: "og:title", content: "IV / LV / CP 计算助手" },
-      { property: "og:description", content: "输入攻击、防御、体力与等级，立即得到 IV 评分与进化 CP。" },
+      {
+        property: "og:description",
+        content: "输入攻击、防御、体力与等级，立即得到 IV 评分与进化 CP。",
+      },
     ],
   }),
   component: ToolsPage,
@@ -35,9 +38,11 @@ function ToolsPage() {
 
   const pct = Math.round(((a + d + s) / 45) * 100);
   const cpm = 0.094 + (level - 1) * 0.0155;
-  const estCp = Math.max(10, Math.round(((100 + a) * Math.sqrt(100 + d) * Math.sqrt(100 + s) * cpm * cpm) / 10));
-  const grade =
-    pct === 100 ? "perfect" : pct >= 89 ? "great" : pct >= 67 ? "ok" : "bad";
+  const estCp = Math.max(
+    10,
+    Math.round(((100 + a) * Math.sqrt(100 + d) * Math.sqrt(100 + s) * cpm * cpm) / 10),
+  );
+  const grade = pct === 100 ? "perfect" : pct >= 89 ? "great" : pct >= 67 ? "ok" : "bad";
 
   useEffect(() => {
     const receiveCapture = (event: MessageEvent) => {
@@ -86,24 +91,73 @@ function ToolsPage() {
 
   return (
     <PageShell className={floating ? "floating-mode" : undefined}>
-      <SectionTitle title="IV / PvP 战术中心" subtitle="普通玩家免费无限次查询，支持手动输入、截图识别与原生悬浮窗接入" />
+      <SectionTitle
+        title="IV / PvP 战术中心"
+        subtitle="普通玩家免费无限次查询，支持手动输入、截图识别与原生悬浮窗接入"
+      />
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-xs">
-        <div className="flex items-center gap-2 text-primary"><ShieldCheck className="h-4 w-4" />免费无限次 IV 查询已开启</div>
+        <div className="flex items-center gap-2 text-primary">
+          <ShieldCheck className="h-4 w-4" />
+          免费无限次 IV 查询已开启
+        </div>
         <div className="flex items-center gap-3 text-muted-foreground">
-          <label className="flex items-center gap-2"><input type="checkbox" checked={alertEnabled} onChange={(e) => setAlertEnabled(e.target.checked)} />100% IV 强提醒</label>
-          <Button size="sm" variant="outline" onClick={() => setFloating((value) => !value)}><Crosshair className="h-3.5 w-3.5" />{floating ? "退出悬浮视图" : "极简悬浮视图"}</Button>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={alertEnabled}
+              onChange={(e) => setAlertEnabled(e.target.checked)}
+            />
+            100% IV 强提醒
+          </label>
+          <Button size="sm" variant="outline" onClick={() => setFloating((value) => !value)}>
+            <Crosshair className="h-3.5 w-3.5" />
+            {floating ? "退出悬浮视图" : "极简悬浮视图"}
+          </Button>
         </div>
       </div>
       <Card className="space-y-4 border-accent/30 bg-accent/5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div><div className="flex items-center gap-2 text-sm font-bold"><ImagePlus className="h-4 w-4 text-accent" />截图 / 悬浮窗识别</div><p className="mt-1 text-[11px] text-muted-foreground">支持 window.onNativeScreenCapture 与 postMessage 数据桥接</p></div>
-          <input ref={uploadRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
-          <Button size="sm" onClick={() => uploadRef.current?.click()} disabled={scanning}><ImagePlus className="h-3.5 w-3.5" />{scanning ? "正在识别..." : "上传游戏截图"}</Button>
+          <div>
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <ImagePlus className="h-4 w-4 text-accent" />
+              截图 / 悬浮窗识别
+            </div>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              支持 window.onNativeScreenCapture 与 postMessage 数据桥接
+            </p>
+          </div>
+          <input
+            ref={uploadRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleUpload}
+          />
+          <Button size="sm" onClick={() => uploadRef.current?.click()} disabled={scanning}>
+            <ImagePlus className="h-3.5 w-3.5" />
+            {scanning ? "正在识别..." : "上传游戏截图"}
+          </Button>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="宝可梦"><Input value={species} onChange={(e) => setSpecies(e.target.value)} /></Field>
-          <Field label="CP"><Input type="number" min="10" value={cp} onChange={(e) => setCp(Number(e.target.value))} /></Field>
-          <Field label="HP"><Input type="number" min="1" value={hp} onChange={(e) => setHp(Number(e.target.value))} /></Field>
+          <Field label="宝可梦">
+            <Input value={species} onChange={(e) => setSpecies(e.target.value)} />
+          </Field>
+          <Field label="CP">
+            <Input
+              type="number"
+              min="10"
+              value={cp}
+              onChange={(e) => setCp(Number(e.target.value))}
+            />
+          </Field>
+          <Field label="HP">
+            <Input
+              type="number"
+              min="1"
+              value={hp}
+              onChange={(e) => setHp(Number(e.target.value))}
+            />
+          </Field>
         </div>
       </Card>
 
@@ -132,35 +186,87 @@ function ToolsPage() {
             <Input type="number" value={hp} onChange={(e) => setHp(Number(e.target.value))} />
           </Field>
         </div>
-
       </Card>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <Card className={pct === 100 && alertEnabled ? "glow-accent border-accent/70 text-center" : "glow-primary text-center"}>
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">IV 综合评分</div>
+        <Card
+          className={
+            pct === 100 && alertEnabled
+              ? "glow-accent border-accent/70 text-center"
+              : "glow-primary text-center"
+          }
+        >
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            IV 综合评分
+          </div>
           <div className="font-display text-3xl font-bold neon-text">{pct}%</div>
-          {pct === 100 && alertEnabled ? <div className="mt-2 flex items-center justify-center gap-1 text-xs font-bold text-accent"><BellRing className="h-3.5 w-3.5" />100% IV 强提醒</div> : null}
+          {pct === 100 && alertEnabled ? (
+            <div className="mt-2 flex items-center justify-center gap-1 text-xs font-bold text-accent">
+              <BellRing className="h-3.5 w-3.5" />
+              100% IV 强提醒
+            </div>
+          ) : null}
         </Card>
         <Card className="text-center">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">估算 CP / HP</div>
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            估算 CP / HP
+          </div>
           <div className="font-display text-3xl font-bold text-primary">{estCp}</div>
-          <div className="mt-1 text-xs text-muted-foreground">截图 HP {hp} · 输入 CP {cp}</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            截图 HP {hp} · 输入 CP {cp}
+          </div>
         </Card>
         <Card className="text-center">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">PvP 评级</div>
-          <Badge tone={grade === "bad" ? "muted" : "vip"} className="mt-2">{grade === "perfect" ? "大师联赛优先" : grade === "great" ? "高级联赛可用" : "建议继续筛选"}</Badge>
+          <Badge tone={grade === "bad" ? "muted" : "vip"} className="mt-2">
+            {grade === "perfect"
+              ? "大师联赛优先"
+              : grade === "great"
+                ? "高级联赛可用"
+                : "建议继续筛选"}
+          </Badge>
         </Card>
         <Card className="space-y-3">
-          <div className="flex items-center gap-2 text-sm font-bold"><Swords className="h-4 w-4 text-primary" />一键推演最佳配招</div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground"><Check className="h-3.5 w-3.5 text-primary" />快速招式：念力</div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground"><Check className="h-3.5 w-3.5 text-primary" />蓄力招式：精神击破 · 暗影球</div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground"><Zap className="h-3.5 w-3.5 text-vip" />建议定位：大师联赛压制位</div>
+          <div className="flex items-center gap-2 text-sm font-bold">
+            <Swords className="h-4 w-4 text-primary" />
+            一键推演最佳配招
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Check className="h-3.5 w-3.5 text-primary" />
+            快速招式：念力
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Check className="h-3.5 w-3.5 text-primary" />
+            蓄力招式：精神击破 · 暗影球
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Zap className="h-3.5 w-3.5 text-vip" />
+            建议定位：大师联赛压制位
+          </div>
         </Card>
       </div>
       <Card className="space-y-3">
-        <div className="flex items-center gap-2 text-sm font-bold"><Crosshair className="h-4 w-4 text-vip" />Boss 100% IV CP 对照表</div>
-        <p className="text-xs text-muted-foreground">所有玩家免费查看，无次数限制。天气加成会改变对应 CP。</p>
-        <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4"><div className="rounded-lg bg-surface-2 p-2">超梦 <b className="ml-2 text-primary">CP 2387</b></div><div className="rounded-lg bg-surface-2 p-2">裂空座 <b className="ml-2 text-primary">CP 2191</b></div><div className="rounded-lg bg-surface-2 p-2">盖欧卡 <b className="ml-2 text-primary">CP 2351</b></div><div className="rounded-lg bg-surface-2 p-2">固拉多 <b className="ml-2 text-primary">CP 2351</b></div></div>
+        <div className="flex items-center gap-2 text-sm font-bold">
+          <Crosshair className="h-4 w-4 text-vip" />
+          Boss 100% IV CP 对照表
+        </div>
+        <p className="text-xs text-muted-foreground">
+          所有玩家免费查看，无次数限制。天气加成会改变对应 CP。
+        </p>
+        <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+          <div className="rounded-lg bg-surface-2 p-2">
+            超梦 <b className="ml-2 text-primary">CP 2387</b>
+          </div>
+          <div className="rounded-lg bg-surface-2 p-2">
+            裂空座 <b className="ml-2 text-primary">CP 2191</b>
+          </div>
+          <div className="rounded-lg bg-surface-2 p-2">
+            盖欧卡 <b className="ml-2 text-primary">CP 2351</b>
+          </div>
+          <div className="rounded-lg bg-surface-2 p-2">
+            固拉多 <b className="ml-2 text-primary">CP 2351</b>
+          </div>
+        </div>
       </Card>
     </PageShell>
   );
