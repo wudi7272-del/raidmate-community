@@ -179,7 +179,7 @@ function AuthDialog({ onClose, onAdminLogin }: { onClose: () => void; onAdminLog
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="font-display text-lg font-bold text-primary">登录 / 注册</h2>
-            <p className="mt-1 text-xs text-muted-foreground">登录后管理金币、排队和提现申请。</p>
+            <p className="mt-1 text-xs text-muted-foreground">登录后管理金币、排队和充值订单。</p>
           </div>
           <button className="text-xs text-muted-foreground" onClick={onClose}>
             关闭

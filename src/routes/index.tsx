@@ -34,7 +34,7 @@ function RoomsPage() {
   const [filter, setFilter] = useState<"all" | RaidMode>("all");
   const [creating, setCreating] = useState(false);
 
-  const visible = rooms.filter((r) => filter === "all" || r.mode === filter);
+  const visible = rooms.filter((r) => !r.launched && (filter === "all" || r.mode === filter));
   const queued = rooms.reduce((n, r) => n + r.queue.length, 0);
 
   return (
@@ -198,36 +198,44 @@ function LiveOpsPanel({
           {t("bounty.publish")}
         </Button>
         <div className="space-y-2">
-          {bounties.slice(0, 3).map((bounty) => (
-            <div key={bounty.id} className="rounded-xl border border-border bg-surface-2/35 p-3">
-              <div className="flex items-start gap-2">
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-semibold">{bounty.request}</div>
-                  <div className="mt-1 text-[10px] text-muted-foreground">
-                    {bounty.author} · {bounty.boss}
+          {bounties
+            .filter((bounty) => bounty.status === "open")
+            .slice(0, 3)
+            .map((bounty) => (
+              <div key={bounty.id} className="rounded-xl border border-border bg-surface-2/35 p-3">
+                <div className="flex items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-semibold">{bounty.request}</div>
+                    <div className="mt-1 text-[10px] text-muted-foreground">
+                      {bounty.author} · {bounty.boss}
+                    </div>
                   </div>
+                  <Badge tone={bounty.status === "completed" ? "muted" : "vip"}>{bounty.reward} 金</Badge>
                 </div>
-                <Badge tone={bounty.status === "completed" ? "muted" : "vip"}>
-                  {bounty.reward} 金
-                </Badge>
+                {bounty.author === profile.trainerName ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="mt-2"
+                    onClick={() => {
+                      const { cancelBounty } = useStore();
+                      cancelBounty(bounty.id);
+                    }}
+                  >
+                    取消悬赏
+                  </Button>
+                ) : bounty.status === "open" ? (
+                  <Button
+                    size="sm"
+                    variant="accent"
+                    className="mt-2"
+                    onClick={() => acceptBounty(bounty.id)}
+                  >
+                    {t("bounty.accept")}
+                  </Button>
+                ) : null}
               </div>
-              {bounty.status === "open" && bounty.author !== profile.trainerName ? (
-                <Button
-                  size="sm"
-                  variant="accent"
-                  className="mt-2"
-                  onClick={() => acceptBounty(bounty.id)}
-                >
-                  {t("bounty.accept")}
-                </Button>
-              ) : null}
-              {bounty.status === "accepted" && bounty.acceptedBy === profile.trainerName ? (
-                <Button size="sm" className="mt-2" onClick={() => settleBounty(bounty.id)}>
-                  {t("bounty.settle")}
-                </Button>
-              ) : null}
-            </div>
-          ))}
+            ))}
         </div>
       </Card>
     </div>
@@ -461,12 +469,12 @@ function RoomCard({ room }: { room: Room }) {
       {room.mode === "local" ? (
         <button
           onClick={() => copy(room.password, t("copied"))}
-          className="tap-scale flex w-full items-center justify-between rounded-xl border border-accent/40 bg-accent/10 px-3 py-2.5 text-left"
+          className="tap-scale flex w-full items-center justify-between rounded-xl border border-accent/40 bg-accent/10 px-3 py-2.5 text-left opacity-80"
         >
           <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
             {t("rooms.password")}
           </span>
-          <span className="font-display text-sm font-bold text-accent">{room.password}</span>
+          <span className="font-display text-sm font-bold text-accent">仅队员可见</span>
         </button>
       ) : (
         <button
@@ -618,7 +626,16 @@ function RoomCard({ room }: { room: Room }) {
         ) : null}
         {canManage && room.lottery.enabled && room.lottery.pot > 0 ? (
           <div className="mt-2 flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => settleRoom(room.id, "shiny")}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const confirmed = window.confirm(
+                  "请先核对接单人的游戏角色名和闪光/100IV截图凭证，确认无误后再发放彩池金币。",
+                );
+                if (confirmed) settleRoom(room.id, "shiny");
+              }}
+            >
               {t("lottery.shinySettle")}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => settleRoom(room.id, "normal")}>

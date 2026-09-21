@@ -32,13 +32,12 @@ function ProfilePage() {
     addCoins,
     buyVip,
     submitDeposit,
-    submitWithdrawal,
   } = useStore();
   const [draft, setDraft] = useState(profile);
   const [monetizationOpen, setMonetizationOpen] = useState(false);
-  const [financeMode, setFinanceMode] = useState<"deposit" | "withdrawal">("deposit");
-  const [financeAmount, setFinanceAmount] = useState("6");
-  const [financeCoins, setFinanceCoins] = useState("300");
+  const [financeMode, setFinanceMode] = useState<"deposit">("deposit");
+  const [financeAmount, setFinanceAmount] = useState("0.99");
+  const [financeCoins, setFinanceCoins] = useState("100");
   const [financeAccount, setFinanceAccount] = useState("");
   const [financeContact, setFinanceContact] = useState("");
   const [financeProof, setFinanceProof] = useState("");
@@ -160,7 +159,7 @@ function ProfilePage() {
                 <div className="flex items-center gap-2 font-display text-lg font-bold text-vip">
                   <Crown className="h-5 w-5" /> Monetization Suite
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">测试模式，不会产生真实扣款。</p>
+                <p className="mt-1 text-xs text-muted-foreground">只进不出模式 · 固定套餐充值</p>
               </div>
               <button
                 aria-label="Close"
@@ -170,45 +169,39 @@ function ProfilePage() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant={financeMode === "deposit" ? "primary" : "outline"}
-                onClick={() => setFinanceMode("deposit")}
-              >
-                充值申请
-              </Button>
-              <Button
-                size="sm"
-                variant={financeMode === "withdrawal" ? "primary" : "outline"}
-                onClick={() => setFinanceMode("withdrawal")}
-              >
-                提现申请
-              </Button>
-            </div>
             <div className="space-y-2 rounded-xl border border-border bg-surface-2/30 p-3">
-              <Field label={financeMode === "deposit" ? "充值金额 / USDT" : "提现金币数量"}>
-                <Input
-                  type="number"
-                  min="1"
+              <div className="rounded-lg border border-vip/30 bg-vip/5 p-2 text-[11px] text-vip">
+                固定套餐：$0.99=100币 / $4.99=500币 / $9.99=1000币 / $19.99=2000币
+              </div>
+              <Field label="选择充值套餐">
+                <select
+                  className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none"
                   value={financeAmount}
-                  onChange={(event) => setFinanceAmount(event.target.value)}
-                />
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    const packageMap = {
+                      "0.99": 100,
+                      "4.99": 500,
+                      "9.99": 1000,
+                      "19.99": 2000,
+                    } as const;
+                    setFinanceAmount(value);
+                    setFinanceCoins(String(packageMap[value as keyof typeof packageMap] ?? 100));
+                  }}
+                >
+                  <option value="0.99">$0.99 = 100 金币</option>
+                  <option value="4.99">$4.99 = 500 金币</option>
+                  <option value="9.99">$9.99 = 1,000 金币</option>
+                  <option value="19.99">$19.99 = 2,000 金币</option>
+                </select>
               </Field>
-              {financeMode === "deposit" ? (
-                <Field label="到账金币">
-                  <Input
-                    type="number"
-                    min="1"
-                    value={financeCoins}
-                    onChange={(event) => setFinanceCoins(event.target.value)}
-                  />
-                </Field>
-              ) : null}
-              <Field label="收付款户口信息">
+              <Field label="到账金币">
+                <Input type="number" min="1" value={financeCoins} onChange={(event) => setFinanceCoins(event.target.value)} />
+              </Field>
+              <Field label="收款账号信息">
                 <Input
                   value={financeAccount}
-                  placeholder="银行户口 / 钱包地址 / UID"
+                  placeholder="钱包地址 / 支付账号 / 备注"
                   onChange={(event) => setFinanceAccount(event.target.value)}
                 />
               </Field>
@@ -221,7 +214,7 @@ function ProfilePage() {
               </Field>
               <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3 text-xs text-primary">
                 <Upload className="h-4 w-4" />
-                {financeProof ? "凭证已读取，可重新上传" : "上传转账凭证 / 收付款二维码 / 银行截图"}
+                {financeProof ? "凭证已读取，可重新上传" : "上传转账凭证 / 收款截图"}
                 <input
                   className="sr-only"
                   type="file"
@@ -242,25 +235,22 @@ function ProfilePage() {
                     showToast("请完整填写金额、户口信息和联系方式");
                     return;
                   }
-                  if (financeMode === "deposit")
-                    submitDeposit({
-                      amount,
-                      coins: Math.max(1, Number(financeCoins)),
-                      proof: financeProof,
-                      accountInfo: financeAccount.trim(),
-                      contact: financeContact.trim(),
-                    });
-                  else
-                    submitWithdrawal({
-                      amount,
-                      proof: financeProof,
-                      accountInfo: financeAccount.trim(),
-                      contact: financeContact.trim(),
-                    });
+                  submitDeposit({
+                    amount,
+                    coins: Math.max(1, Number(financeCoins)),
+                    proof: financeProof,
+                    accountInfo: financeAccount.trim(),
+                    contact: financeContact.trim(),
+                  });
                   setFinanceProof("");
+                  setFinanceAccount("");
+                  setFinanceContact("");
+                  setFinanceAmount("0.99");
+                  setFinanceCoins("100");
+                  setMonetizationOpen(false);
                 }}
               >
-                {financeMode === "deposit" ? "提交充值审核" : "提交提现申请"}
+                提交充值审核
               </Button>
             </div>
             <div className="space-y-2">

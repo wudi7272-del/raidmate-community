@@ -48,6 +48,13 @@ function WallPage() {
   const [kind, setKind] = useState<PostKind>("shiny");
   const [image, setImage] = useState("");
 
+  const handleImageUpload = (file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setImage(String(reader.result ?? ""));
+    reader.readAsDataURL(file);
+  };
+
   return (
     <PageShell>
       <SectionTitle title={t("wall.title")} subtitle={t("wall.subtitle")} />
@@ -77,7 +84,15 @@ function WallPage() {
             <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="KLCC" />
           </Field>
           <Field label={t("wall.image")}>
-            <Input value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://" />
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-[11px] text-primary">
+              <span>{image ? "已选择本地图片" : "上传手机相册图片"}</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(event) => handleImageUpload(event.target.files?.[0])}
+              />
+            </label>
           </Field>
         </div>
         <Button

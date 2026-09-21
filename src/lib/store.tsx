@@ -30,26 +30,27 @@ export type Siren = {
   createdAt: number;
   expiresAt: number;
 };
+export type BountyStatus = "open" | "accepted" | "completed" | "cancelled";
 export type Bounty = {
   id: string;
   author: string;
   request: string;
   reward: number;
   boss: string;
-  status: "open" | "accepted" | "completed" | "cancelled";
+  status: BountyStatus;
   acceptedBy?: string;
-  acceptedRole?: string;
+  acceptedUsername?: string;
 };
-export type Lottery = {
-  enabled: boolean;
-  entries: string[];
-  winner?: string;
-  winners?: string[];
-  proof?: string;
-  pot: number;
-  closed?: boolean;
+export type Lottery = { enabled: boolean; entries: string[]; winner?: string; pot: number };
+export type BillingRecord = {
+  id: string;
+  username: string;
+  type: "manual_adjust" | "reward" | "charge" | "bounty" | "lottery" | "deposit";
+  amount: number;
+  reason: string;
+  balanceAfter: number;
+  createdAt: number;
 };
-
 
 export type Room = {
   id: string;
@@ -115,22 +116,6 @@ export type FinanceOrder = {
   createdAt: number;
 };
 
-export type CoinLedger = {
-  id: string;
-  username: string;
-  delta: number;
-  note: string;
-  operator: string;
-  createdAt: number;
-};
-
-export const COIN_PACKAGES = [
-  { id: "p1", usd: 0.99, coins: 100 },
-  { id: "p2", usd: 4.99, coins: 500 },
-  { id: "p3", usd: 9.99, coins: 1000 },
-  { id: "p4", usd: 19.99, coins: 2000 },
-] as const;
-
 export type Account = { username: string; password: string; profile: Profile };
 
 type StoredAccount = {
@@ -138,7 +123,6 @@ type StoredAccount = {
   password: string;
   profile: Profile;
 };
-
 
 export const FORMATIONS: Formation[] = [
   { id: "mega", name: "Mega 核心爆发", description: "高压速推，适合竞速榜冲刺", dps: 920 },
@@ -148,6 +132,13 @@ export const FORMATIONS: Formation[] = [
 
 const ADMIN_USERNAME = "admin";
 const ADMIN_PASSWORD = "5500123488htk";
+const SIREN_DURATION_MS = 3 * 60 * 1000;
+const DEPOSIT_PACKAGES = [
+  { id: "mini", label: "$0.99", usd: 0.99, coins: 100 },
+  { id: "starter", label: "$4.99", usd: 4.99, coins: 500 },
+  { id: "classic", label: "$9.99", usd: 9.99, coins: 1000 },
+  { id: "vip", label: "$19.99", usd: 19.99, coins: 2000 },
+] as const;
 
 const WORDS = [
   "Pikachu",
@@ -189,31 +180,27 @@ function readStored<T>(key: string, fallback: T): T {
   }
 }
 
-// Fixed base time so SSR and client render identical seed data (no hydration mismatch).
-const SEED_NOW = Date.parse("2026-09-19T06:00:00Z");
-
 function seedFinanceOrders(): FinanceOrder[] {
   return [
     {
       id: "ORD-24091",
       kind: "deposit",
       username: "MistyGo",
-      amount: 4.99,
-      coins: 500,
+      amount: 6,
+      coins: 300,
       status: "pending",
       proof: "",
       accountInfo: "USDT TRC20 · TQnexus-demo",
       contact: "Telegram @mistygo",
-      createdAt: SEED_NOW - 3600000,
+      createdAt: Date.now() - 3600000,
     },
   ];
-
 }
 
 function seedRooms(): Room[] {
   return [
     {
-      id: "seed-room-mewtwo",
+      id: uid(),
       boss: "Mewtwo",
       gym: "Shibuya Crossing Gym",
       cp: 54148,
@@ -222,20 +209,20 @@ function seedRooms(): Room[] {
       mode: "remote",
       capacity: 10,
       hostName: "wudi0693",
-      hostCode: "5107 7347 6209",
-      password: "Pikachu-Bulbasaur-Charmander",
+      hostCode: randCode(),
+      password: generatePassword(),
       launched: false,
-      createdAt: SEED_NOW - 120000,
+      createdAt: Date.now() - 120000,
       queue: [
-        { id: "seed-m1", name: "ShinyHunterJP", code: "2841 9063 5572", vip: true, ready: true, dps: 840 },
-        { id: "seed-m2", name: "KimRaidKing", code: "7395 1128 4460", vip: false, ready: true, dps: 710 },
-        { id: "seed-m3", name: "阿杰打团", code: "6602 3814 9927", vip: false, ready: false, dps: 620 },
+        { id: uid(), name: "ShinyHunterJP", code: randCode(), vip: true, ready: true, dps: 840 },
+        { id: uid(), name: "KimRaidKing", code: randCode(), vip: false, ready: true, dps: 710 },
+        { id: uid(), name: "阿杰打团", code: randCode(), vip: false, ready: false, dps: 620 },
       ],
       formationId: "counter",
       lottery: { enabled: true, entries: ["ShinyHunterJP", "KimRaidKing"], pot: 10 },
     },
     {
-      id: "seed-room-rayquaza",
+      id: uid(),
       boss: "Rayquaza",
       gym: "KLCC Park Gym",
       cp: 51968,
@@ -244,11 +231,11 @@ function seedRooms(): Room[] {
       mode: "local",
       capacity: 5,
       hostName: "NeonTrainer",
-      hostCode: "3358 7704 1269",
-      password: "Eevee-Snorlax-Gengar",
+      hostCode: randCode(),
+      password: generatePassword(),
       launched: false,
-      createdAt: SEED_NOW - 300000,
-      queue: [{ id: "seed-m4", name: "MistyGo", code: "4471 8259 0633", vip: false, ready: false, dps: 650 }],
+      createdAt: Date.now() - 300000,
+      queue: [{ id: uid(), name: "MistyGo", code: randCode(), vip: false, ready: false, dps: 650 }],
       formationId: "weather",
       lottery: { enabled: false, entries: [], pot: 0 },
     },
@@ -258,7 +245,7 @@ function seedRooms(): Room[] {
 function seedPosts(): Post[] {
   return [
     {
-      id: "seed-post-shiny",
+      id: uid(),
       author: "ShinyHunterJP",
       kind: "shiny",
       text: "街中で色違いゲット！5000回目の遭遇でようやく…",
@@ -268,13 +255,13 @@ function seedPosts(): Post[] {
       likes: 128,
       liked: false,
       comments: [
-        { id: "seed-c1", author: "KimRaidKing", text: "축하합니다! 부럽네요 🔥" },
-        { id: "seed-c2", author: "阿杰打团", text: "运气太好了吧！" },
+        { id: uid(), author: "KimRaidKing", text: "축하합니다! 부럽네요 🔥" },
+        { id: uid(), author: "阿杰打团", text: "运气太好了吧！" },
       ],
-      createdAt: SEED_NOW - 600000,
+      createdAt: Date.now() - 600000,
     },
     {
-      id: "seed-post-shadow",
+      id: uid(),
       author: "NeonTrainer",
       kind: "shadow",
       text: "Shadow catch of the night — 96% and ready for the raid meta.",
@@ -283,11 +270,11 @@ function seedPosts(): Post[] {
       iv: { a: 15, d: 14, s: 14 },
       likes: 74,
       liked: false,
-      comments: [{ id: "seed-c3", author: "MistyGo", text: "Nice one!" }],
-      createdAt: SEED_NOW - 1800000,
+      comments: [{ id: uid(), author: "MistyGo", text: "Nice one!" }],
+      createdAt: Date.now() - 1800000,
     },
     {
-      id: "seed-post-hundo",
+      id: uid(),
       author: "wudi0693",
       kind: "hundo",
       text: "百分百个体值，直接满级培养！",
@@ -296,7 +283,7 @@ function seedPosts(): Post[] {
       likes: 210,
       liked: false,
       comments: [],
-      createdAt: SEED_NOW - 5400000,
+      createdAt: Date.now() - 5400000,
     },
   ];
 }
@@ -337,6 +324,7 @@ type StoreValue = {
   leaderboard: SpeedrunEntry[];
   bounties: Bounty[];
   createBounty: (request: string, boss: string, reward: number) => void;
+  cancelBounty: (bountyId: string) => void;
   acceptBounty: (bountyId: string) => void;
   settleBounty: (bountyId: string) => void;
   setFormation: (roomId: string, formationId: string) => void;
@@ -348,17 +336,16 @@ type StoreValue = {
   accounts: Account[];
   frozenAccounts: string[];
   financeOrders: FinanceOrder[];
+  billingRecords: BillingRecord[];
   submitDeposit: (
     input: Omit<FinanceOrder, "id" | "kind" | "username" | "status" | "createdAt">,
-  ) => void;
-  submitWithdrawal: (
-    input: Omit<FinanceOrder, "id" | "kind" | "username" | "status" | "createdAt" | "coins">,
   ) => void;
   reviewFinanceOrder: (id: string, decision: "approved" | "rejected") => void;
   toggleFrozenAccount: (username: string) => void;
   updateAccount: (username: string, profile: Profile, password?: string) => void;
   toggleAccountVip: (username: string) => void;
   resetAccountPassword: (username: string, password: string) => void;
+  manualAdjustBalance: (username: string, amount: number, reason: string) => void;
   isAccountFrozen: (username: string) => boolean;
 };
 
@@ -383,6 +370,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
   const [financeOrders, setFinanceOrders] = useState<FinanceOrder[]>(() =>
     readStored("raid-nexus-finance", seedFinanceOrders()),
+  );
+  const [billingRecords, setBillingRecords] = useState<BillingRecord[]>(() =>
+    readStored("raid-nexus-billing", []),
   );
   const [rooms, setRooms] = useState<Room[]>(() => readStored("raid-nexus-rooms", seedRooms()));
   const [posts, setPosts] = useState<Post[]>(() => seedPosts());
@@ -463,6 +453,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [financeOrders],
   );
   useEffect(
+    () => localStorage.setItem("raid-nexus-billing", JSON.stringify(billingRecords)),
+    [billingRecords],
+  );
+  useEffect(
     () => localStorage.setItem("raid-nexus-frozen", JSON.stringify(frozenAccounts)),
     [frozenAccounts],
   );
@@ -477,20 +471,51 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("raid-nexus-accounts", JSON.stringify(next));
   };
 
+  const showToast = (msg: string) => {
+    setToast(msg);
+    window.setTimeout(() => setToast(null), 1800);
+  };
+
+  const copy = (text: string, msg: string) => {
+    void navigator.clipboard?.writeText(text);
+    showToast(msg);
+  };
+
+  const broadcastSiren = (roomId: string) => {
+    const room = rooms.find((item) => item.id === roomId);
+    if (!room) return;
+
+    const siren: Siren = {
+      id: uid(),
+      host: room.hostName || profile.trainerName,
+      message: `${room.boss} 队伍紧急发车，3 分钟倒计时启动，未到场玩家请及时确认。`,
+      roomId,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + SIREN_DURATION_MS,
+    };
+
+    setSirens((prev) => [siren, ...prev].slice(0, 3));
+    try {
+      localStorage.setItem("raid-nexus-siren", JSON.stringify(siren));
+    } catch {
+      /* ignore storage errors */
+    }
+    showToast("全服紧急发车警报已广播");
+  };
+
   const isAuthenticated = authUser !== null;
   const isAdmin = authUser?.role === "admin";
+  const isAccountFrozen = (username: string) => frozenAccounts.includes(username);
 
   const register = (username: string, password: string, trainerCode: string) => {
     const normalized = username.trim();
-    const accounts = JSON.parse(
-      localStorage.getItem("raid-nexus-accounts") ?? "[]",
-    ) as StoredAccount[];
+    const existing = JSON.parse(localStorage.getItem("raid-nexus-accounts") ?? "[]") as StoredAccount[];
     if (
       !normalized ||
       normalized.toLowerCase() === ADMIN_USERNAME ||
       password.length < 6 ||
       !/^\d{12}$/.test(trainerCode) ||
-      accounts.some((account) => account.username.toLowerCase() === normalized.toLowerCase())
+      existing.some((account) => account.username.toLowerCase() === normalized.toLowerCase())
     ) {
       showToast("注册信息无效：用户名需唯一，密码至少 6 位，训练家代码需为 12 位数字");
       return false;
@@ -504,13 +529,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       coins: 100,
       badges: [],
     };
-    localStorage.setItem(
-      "raid-nexus-accounts",
-      JSON.stringify([...accounts, { username: normalized, password, profile: nextProfile }]),
-    );
+    const nextAccounts = [...existing, { username: normalized, password, profile: nextProfile }];
+    localStorage.setItem("raid-nexus-accounts", JSON.stringify(nextAccounts));
     localStorage.setItem("raid-nexus-profile", JSON.stringify(nextProfile));
     const nextUser: AuthUser = { username: normalized, role: "player", trainerCode };
     localStorage.setItem("raid-nexus-auth", JSON.stringify(nextUser));
+    setAccounts(nextAccounts);
     setProfileState(nextProfile);
     setAuthUser(nextUser);
     showToast("注册成功，已自动登录");
@@ -526,12 +550,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       showToast("管理员登录成功");
       return true;
     }
-    const accounts = JSON.parse(
-      localStorage.getItem("raid-nexus-accounts") ?? "[]",
-    ) as StoredAccount[];
-    const account = accounts.find(
-      (item) =>
-        item.username.toLowerCase() === normalized.toLowerCase() && item.password === password,
+    const existing = JSON.parse(localStorage.getItem("raid-nexus-accounts") ?? "[]") as StoredAccount[];
+    const account = existing.find(
+      (item) => item.username.toLowerCase() === normalized.toLowerCase() && item.password === password,
     );
     if (!account || frozenAccounts.includes(account.username)) {
       showToast("账号或密码错误");
@@ -556,116 +577,91 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setProfileState(defaultProfile);
   };
 
-  const submitDeposit = (
-      input: Omit<FinanceOrder, "id" | "kind" | "username" | "status" | "createdAt">,
-    ) => {
-      const order: FinanceOrder = {
-        ...input,
-        id: `ORD-${Date.now().toString().slice(-6)}`,
-        kind: "deposit",
-        username: profile.trainerName,
-        status: "pending",
+  const toggleFrozenAccount = (username: string) =>
+    setFrozenAccounts((current) =>
+      current.includes(username)
+        ? current.filter((item) => item !== username)
+        : [...current, username],
+    );
+
+  const updateAccount = (username: string, nextProfile: Profile, password?: string) => {
+    const nextAccounts = accounts.map((account) =>
+      account.username === username
+        ? { ...account, profile: nextProfile, ...(password ? { password } : {}) }
+        : account,
+    );
+    replaceAccounts(nextAccounts);
+    if (authUser?.username === username) setProfileState(nextProfile);
+  };
+
+  const toggleAccountVip = (username: string) => {
+    const account = accounts.find((item) => item.username === username);
+    if (account) updateAccount(username, { ...account.profile, vip: !account.profile.vip });
+  };
+
+  const resetAccountPassword = (username: string, password: string) => {
+    const account = accounts.find((item) => item.username === username);
+    if (account) updateAccount(username, account.profile, password);
+  };
+
+  const submitDeposit = (input: Omit<FinanceOrder, "id" | "kind" | "username" | "status" | "createdAt">) => {
+    const order: FinanceOrder = {
+      ...input,
+      id: `ORD-${Date.now().toString().slice(-6)}`,
+      kind: "deposit",
+      username: profile.trainerName,
+      status: "pending",
+      createdAt: Date.now(),
+    };
+    setFinanceOrders((current) => [order, ...current]);
+    showToast("充值订单已提交，等待管理员审核");
+  };
+
+  const reviewFinanceOrder = (id: string, decision: "approved" | "rejected") => {
+    const order = financeOrders.find((item) => item.id === id);
+    if (!order || order.status !== "pending") return;
+    setFinanceOrders((current) =>
+      current.map((item) => (item.id === id ? { ...item, status: decision } : item)),
+    );
+    if (decision === "approved") {
+      const next = accounts.map((account) =>
+        account.profile.trainerName === order.username || account.username === order.username
+          ? { ...account, profile: { ...account.profile, coins: account.profile.coins + order.coins } }
+          : account,
+      );
+      replaceAccounts(next);
+      if (authUser?.username === order.username || profile.trainerName === order.username)
+        setProfileState((current) => ({ ...current, coins: current.coins + order.coins }));
+    }
+    showToast(decision === "approved" ? "订单审核通过" : "订单已退回");
+  };
+
+  const manualAdjustBalance = (username: string, amount: number, reason: string) => {
+    const parsed = Number(amount);
+    if (!Number.isFinite(parsed) || parsed === 0) return;
+    const target = accounts.find((account) => account.username === username);
+    if (!target) return;
+    const nextCoins = Math.max(0, target.profile.coins + parsed);
+    const nextAccounts = accounts.map((account) =>
+      account.username === username
+        ? { ...account, profile: { ...account.profile, coins: nextCoins } }
+        : account,
+    );
+    replaceAccounts(nextAccounts);
+    setBillingRecords((current) => [
+      {
+        id: uid(),
+        username,
+        type: "manual_adjust",
+        amount: parsed,
+        reason: reason.trim() || "手动调账",
+        balanceAfter: nextCoins,
         createdAt: Date.now(),
-      };
-      setFinanceOrders((current) => [order, ...current]);
-      showToast("充值申请已提交，等待管理员审核");
-    };
-
-    const submitWithdrawal = (
-      input: Omit<FinanceOrder, "id" | "kind" | "username" | "status" | "createdAt" | "coins">,
-    ) => {
-      const coins = Math.max(1, Math.floor(input.amount));
-      if (profile.coins < coins) {
-        showToast("金币余额不足");
-        return;
-      }
-      setProfileState((current) => ({ ...current, coins: current.coins - coins }));
-      setFinanceOrders((current) => [
-        {
-          ...input,
-          coins,
-          id: `WD-${Date.now().toString().slice(-6)}`,
-          kind: "withdrawal",
-          username: profile.trainerName,
-          status: "pending",
-          createdAt: Date.now(),
-        },
-        ...current,
-      ]);
-      showToast("提现申请已提交，金币已暂存");
-    };
-
-    const reviewFinanceOrder = (id: string, decision: "approved" | "rejected") => {
-      const order = financeOrders.find((item) => item.id === id);
-      if (!order || order.status !== "pending") return;
-      setFinanceOrders((current) =>
-        current.map((item) => (item.id === id ? { ...item, status: decision } : item)),
-      );
-      if (decision === "approved" && order.kind === "deposit") {
-        const next = accounts.map((account) =>
-          account.username === order.username
-            ? {
-                ...account,
-                profile: { ...account.profile, coins: account.profile.coins + order.coins },
-              }
-            : account,
-        );
-        replaceAccounts(next);
-        if (authUser?.username === order.username)
-          setProfileState((current) => ({ ...current, coins: current.coins + order.coins }));
-      }
-      if (decision === "rejected" && order.kind === "withdrawal") {
-        const next = accounts.map((account) =>
-          account.username === order.username
-            ? {
-                ...account,
-                profile: { ...account.profile, coins: account.profile.coins + order.coins },
-              }
-            : account,
-        );
-        replaceAccounts(next);
-        if (authUser?.username === order.username)
-          setProfileState((current) => ({ ...current, coins: current.coins + order.coins }));
-      }
-      showToast(decision === "approved" ? "订单审核通过" : "订单已退回");
-    };
-
-    const toggleFrozenAccount = (username: string) =>
-      setFrozenAccounts((current) =>
-        current.includes(username)
-          ? current.filter((item) => item !== username)
-          : [...current, username],
-      );
-    const updateAccount = (username: string, nextProfile: Profile, password?: string) => {
-      replaceAccounts(
-        accounts.map((account) =>
-          account.username === username
-            ? { ...account, profile: nextProfile, ...(password ? { password } : {}) }
-            : account,
-        ),
-      );
-      if (authUser?.username === username) setProfileState(nextProfile);
-    };
-    const toggleAccountVip = (username: string) => {
-      const account = accounts.find((item) => item.username === username);
-      if (account) updateAccount(username, { ...account.profile, vip: !account.profile.vip });
-    };
-    const resetAccountPassword = (username: string, password: string) => {
-      const account = accounts.find((item) => item.username === username);
-      if (account) updateAccount(username, account.profile, password);
-  };
-
-  const isAccountFrozen = (username: string) => frozenAccounts.includes(username);
-
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    window.setTimeout(() => setToast(null), 1800);
-  };
-
-  const copy = (text: string, msg: string) => {
-    void navigator.clipboard?.writeText(text);
-    showToast(msg);
+      },
+      ...current,
+    ]);
+    if (authUser?.username === username) setProfileState((current) => ({ ...current, coins: nextCoins }));
+    showToast(`余额已调整 ${parsed > 0 ? "+" : ""}${parsed} 金币`);
   };
 
   useEffect(() => {
@@ -698,6 +694,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           /* ignore malformed sync */
         }
       }
+      if (event.key === "raid-nexus-billing" && event.newValue) {
+        try {
+          setBillingRecords(JSON.parse(event.newValue) as BillingRecord[]);
+        } catch {
+          /* ignore malformed sync */
+        }
+      }
       if (event.key !== "raid-nexus-siren" || !event.newValue) return;
       try {
         setSirens((prev) => [JSON.parse(event.newValue!) as Siren, ...prev].slice(0, 3));
@@ -724,27 +727,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       toast,
       showToast,
       copy,
-      sirens,
+      sirens: sirens.filter((siren) => siren.expiresAt > Date.now()),
       leaderboard,
       bounties,
-      broadcastSiren: (roomId) => {
-        if (profile.coins < 30) {
-          showToast("金币不足，需要 30 金币");
-          return;
-        }
-        const siren: Siren = {
-          id: uid(),
-          host: profile.trainerName,
-          message: "紧急发车！现在加入，马上满车开打！",
-          roomId,
-          createdAt: Date.now(),
-          expiresAt: Date.now() + 45000,
-        };
-        setProfileState((current) => ({ ...current, coins: current.coins - 30 }));
-        setSirens((prev) => [siren, ...prev].slice(0, 3));
-        localStorage.setItem("raid-nexus-siren", JSON.stringify(siren));
-        showToast("全服警报已发出，消耗 30 金币");
-      },
+      broadcastSiren,
       createBounty: (request, boss, reward) => {
         const amount = Math.max(5, Math.floor(reward));
         if (profile.coins < amount) {
@@ -756,25 +742,92 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           { id: uid(), author: profile.trainerName, request, reward: amount, boss, status: "open" },
           ...prev,
         ]);
+        setBillingRecords((current) => [
+          {
+            id: uid(),
+            username: authUser?.username ?? profile.trainerName,
+            type: "bounty",
+            amount: -amount,
+            reason: `悬赏托管：${request}`,
+            balanceAfter: Math.max(0, profile.coins - amount),
+            createdAt: Date.now(),
+          },
+          ...current,
+        ]);
         showToast("悬赏已发布，金币已托管");
       },
-      acceptBounty: (bountyId) =>
+      cancelBounty: (bountyId) => {
+        const bounty = bounties.find((item) => item.id === bountyId);
+        if (!bounty || bounty.status !== "open" || bounty.author !== profile.trainerName) return;
+        setBounties((prev) =>
+          prev.map((item) =>
+            item.id === bountyId ? { ...item, status: "cancelled" } : item,
+          ),
+        );
+        setProfileState((current) => ({ ...current, coins: current.coins + bounty.reward }));
+        setBillingRecords((current) => [
+          {
+            id: uid(),
+            username: authUser?.username ?? profile.trainerName,
+            type: "reward",
+            amount: bounty.reward,
+            reason: `取消悬赏退款：${bounty.request}`,
+            balanceAfter: profile.coins + bounty.reward,
+            createdAt: Date.now(),
+          },
+          ...current,
+        ]);
+        showToast(`悬赏已取消，退回 ${bounty.reward} 金币`);
+      },
+      acceptBounty: (bountyId) => {
         setBounties((prev) =>
           prev.map((bounty) =>
             bounty.id === bountyId && bounty.status === "open"
-              ? { ...bounty, status: "accepted", acceptedBy: profile.trainerName }
+              ? {
+                  ...bounty,
+                  status: "accepted",
+                  acceptedBy: profile.trainerName,
+                  acceptedUsername: authUser?.username ?? profile.trainerName,
+                }
               : bounty,
           ),
-        ),
+        );
+        showToast("悬赏已接单，待发布者确认完成");
+      },
       settleBounty: (bountyId) => {
         const bounty = bounties.find((item) => item.id === bountyId);
-        if (!bounty || bounty.status !== "accepted" || bounty.acceptedBy !== profile.trainerName)
-          return;
+        if (!bounty || bounty.status !== "accepted" || bounty.author !== profile.trainerName) return;
+        const target = accounts.find(
+          (account) =>
+            account.profile.trainerName === bounty.acceptedBy || account.username === bounty.acceptedUsername,
+        );
         setBounties((prev) =>
           prev.map((item) => (item.id === bountyId ? { ...item, status: "completed" } : item)),
         );
-        setProfileState((current) => ({ ...current, coins: current.coins + bounty.reward }));
-        showToast(`带队完成，获得 ${bounty.reward} 金币`);
+        setBillingRecords((current) => [
+          {
+            id: uid(),
+            username: target?.username ?? bounty.acceptedUsername ?? bounty.acceptedBy ?? profile.trainerName,
+            type: "reward",
+            amount: bounty.reward,
+            reason: `悬赏结算：${bounty.request}`,
+            balanceAfter: (target?.profile.coins ?? profile.coins) + bounty.reward,
+            createdAt: Date.now(),
+          },
+          ...current,
+        ]);
+        if (target) {
+          const next = accounts.map((account) =>
+            account.username === target.username
+              ? { ...account, profile: { ...account.profile, coins: account.profile.coins + bounty.reward } }
+              : account,
+          );
+          replaceAccounts(next);
+          if (authUser?.username === target.username) {
+            setProfileState((current) => ({ ...current, coins: current.coins + bounty.reward }));
+          }
+        }
+        showToast(`已确认完成，${bounty.acceptedBy ?? "接单人"}获得 ${bounty.reward} 金币`);
       },
       setFormation: (roomId, formationId) =>
         setRooms((prev) =>
@@ -783,54 +836,99 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       toggleLottery: (roomId) =>
         setRooms((prev) =>
           prev.map((room) =>
-            room.id === roomId
+            room.id === roomId && !room.launched
               ? { ...room, lottery: { ...room.lottery, enabled: !room.lottery.enabled } }
               : room,
           ),
         ),
       joinLottery: (roomId) => {
+        const room = rooms.find((item) => item.id === roomId);
+        if (!room || room.launched || !room.lottery.enabled || room.lottery.entries.includes(profile.trainerName)) {
+          showToast("彩池已关闭或你已参与");
+          return;
+        }
         if (profile.coins < 5) {
           showToast("金币不足，需要 5 金币入池");
           return;
         }
         setRooms((prev) =>
-          prev.map((room) => {
-            if (
-              room.id !== roomId ||
-              !room.lottery.enabled ||
-              room.lottery.entries.includes(profile.trainerName)
-            )
-              return room;
+          prev.map((item) => {
+            if (item.id !== roomId) return item;
             return {
-              ...room,
+              ...item,
               lottery: {
-                ...room.lottery,
-                entries: [...room.lottery.entries, profile.trainerName],
-                pot: room.lottery.pot + 5,
+                ...item.lottery,
+                entries: [...item.lottery.entries, profile.trainerName],
+                pot: item.lottery.pot + 5,
               },
             };
           }),
         );
         setProfileState((current) => ({ ...current, coins: current.coins - 5 }));
+        setBillingRecords((current) => [
+          {
+            id: uid(),
+            username: authUser?.username ?? profile.trainerName,
+            type: "lottery",
+            amount: -5,
+            reason: `彩池投注：${room.boss}`,
+            balanceAfter: profile.coins - 5,
+            createdAt: Date.now(),
+          },
+          ...current,
+        ]);
+        showToast("已参与彩池，扣除 5 金币");
       },
       settleRoom: (roomId, catchType) => {
         const room = rooms.find((item) => item.id === roomId);
         if (!room || !room.lottery.enabled || room.lottery.entries.length === 0) return;
         if (catchType === "normal") {
-          showToast("本局没有 Shiny 或 100% IV，彩池保留");
+          setRooms((prev) =>
+            prev.map((item) =>
+              item.id === roomId ? { ...item, lottery: { ...item.lottery, enabled: false } } : item,
+            ),
+          );
+          showToast("本局没有 Shiny 或 100% IV，彩池已关闭");
           return;
         }
-        const winner = catchType === "shiny" ? profile.trainerName : room.lottery.entries[0];
-        if (!winner) return;
-        const prize = Math.floor(room.lottery.pot * 0.8);
+        const winners = room.lottery.entries.slice();
+        if (winners.length === 0) return;
+        const prize = Math.floor(room.lottery.pot / winners.length);
         setRooms((prev) =>
           prev.map((item) =>
-            item.id === roomId ? { ...item, lottery: { ...item.lottery, winner, pot: 0 } } : item,
+            item.id === roomId
+              ? {
+                  ...item,
+                  lottery: { ...item.lottery, enabled: false, winner: winners.join("、"), pot: 0 },
+                }
+              : item,
           ),
         );
-        if (winner === profile.trainerName)
+
+        const nextAccounts = accounts.map((account) => {
+          if (!winners.includes(account.profile.trainerName)) return account;
+          return {
+            ...account,
+            profile: { ...account.profile, coins: account.profile.coins + prize },
+          };
+        });
+        replaceAccounts(nextAccounts);
+        if (winners.includes(profile.trainerName)) {
           setProfileState((current) => ({ ...current, coins: current.coins + prize }));
-        showToast(`${winner} 赢得彩池大奖 ${prize} 金币（平台抽成 20%）`);
+        }
+        setBillingRecords((current) => [
+          {
+            id: uid(),
+            username: winners.join(",") || profile.trainerName,
+            type: "lottery",
+            amount: prize * winners.length,
+            reason: `${catchType === "shiny" ? "闪光" : "100IV"}彩池分奖：${winners.join("、")}`,
+            balanceAfter: profile.coins + prize * winners.length,
+            createdAt: Date.now(),
+          },
+          ...current,
+        ]);
+        showToast(`${winners.join("、")} 平分彩池 ${room.lottery.pot} 金币，单人分得 ${prize} 金币`);
       },
       addCoins: (amount, reason) => {
         setProfileState((current) => {
@@ -838,6 +936,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           localStorage.setItem("raid-nexus-profile", JSON.stringify(next));
           return next;
         });
+        setBillingRecords((current) => [
+          {
+            id: uid(),
+            username: authUser?.username ?? profile.trainerName,
+            type: "reward",
+            amount,
+            reason,
+            balanceAfter: profile.coins + amount,
+            createdAt: Date.now(),
+          },
+          ...current,
+        ]);
         showToast(`${reason} +${amount} 金币`);
       },
       buyVip: () => {
@@ -873,7 +983,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       joinRoom: (roomId) =>
         setRooms((prev) =>
           prev.map((room) => {
-            if (room.id !== roomId) return room;
+            if (room.id !== roomId || room.launched) return room;
             if (room.queue.some((m) => m.isSelf)) return room;
             const me: Member = {
               id: uid(),
@@ -884,11 +994,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               dps: 680,
               isSelf: true,
             };
-            if (!profile.vip) return { ...room, queue: [...room.queue, me] };
-            const lastVip = room.queue.reduce((acc, m, i) => (m.vip ? i + 1 : acc), 0);
-            const next = [...room.queue];
-            next.splice(lastVip, 0, me);
-            return { ...room, queue: next };
+            if (room.queue.length >= room.capacity) return room;
+
+            const nextQueue = !profile.vip
+              ? [...room.queue, me]
+              : (() => {
+                  const lastVip = room.queue.reduce((acc, m, i) => (m.vip ? i + 1 : acc), 0);
+                  const next = [...room.queue];
+                  next.splice(lastVip, 0, me);
+                  return next;
+                })();
+
+            if (nextQueue.length >= room.capacity) {
+              return {
+                ...room,
+                queue: nextQueue,
+                launched: true,
+                lottery: { ...room.lottery, enabled: false },
+              };
+            }
+
+            return { ...room, queue: nextQueue };
           }),
         ),
       leaveRoom: (roomId) =>
@@ -918,7 +1044,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ),
       launchRoom: (roomId) =>
         setRooms((prev) =>
-          prev.map((room) => (room.id === roomId ? { ...room, launched: true } : room)),
+          prev.map((room) =>
+            room.id === roomId
+              ? { ...room, launched: true, lottery: { ...room.lottery, enabled: false } }
+              : room,
+          ),
         ),
       removeRoom: (roomId) => setRooms((prev) => prev.filter((r) => r.id !== roomId)),
       addPost: (p) =>
@@ -952,12 +1082,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ),
         ),
       removePost: (postId) => setPosts((prev) => prev.filter((p) => p.id !== postId)),
-      accounts,
-      frozenAccounts,
-      financeOrders,
+      billingRecords,
       submitDeposit,
-      submitWithdrawal,
-      reviewFinanceOrder,
+      manualAdjustBalance,
       toggleFrozenAccount,
       updateAccount,
       toggleAccountVip,
@@ -965,9 +1092,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       isAccountFrozen,
     }),
     [
-      accounts,
-      frozenAccounts,
-      financeOrders,
       profile,
       authUser,
       isAuthenticated,
@@ -978,6 +1102,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       sirens,
       leaderboard,
       bounties,
+      billingRecords,
+      accounts,
+      frozenAccounts,
+      financeOrders,
       copy,
     ],
   );

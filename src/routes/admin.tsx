@@ -35,8 +35,9 @@ export function AdminPage() {
     updateAccount,
     toggleAccountVip,
     resetAccountPassword,
+    manualAdjustBalance,
   } = useStore();
-  const [filter, setFilter] = useState<"all" | "deposit" | "withdrawal">("all");
+  const [filter, setFilter] = useState<"all" | "deposit">("all");
   const [selected, setSelected] = useState<FinanceOrder | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
@@ -45,7 +46,7 @@ export function AdminPage() {
     if (!isAdmin) void navigate({ to: "/" });
   }, [isAdmin, navigate]);
   if (!isAdmin) return null;
-  const pending = (kind: "deposit" | "withdrawal") =>
+  const pending = (kind: "deposit") =>
     financeOrders.filter((item) => item.kind === kind && item.status === "pending").length;
   const visible = financeOrders.filter((item) => filter === "all" || item.kind === filter);
   const jump = (id: string, nextFilter?: typeof filter) => {
@@ -55,12 +56,8 @@ export function AdminPage() {
   const adjust = (account: Account) => {
     const amount = Number(coins[account.username]);
     if (!Number.isFinite(amount) || amount === 0) return;
-    updateAccount(account.username, {
-      ...account.profile,
-      coins: Math.max(0, account.profile.coins + amount),
-    });
+    manualAdjustBalance(account.username, amount, "超级管理员手动调账");
     setCoins({ ...coins, [account.username]: "" });
-    showToast("金币余额已更新");
   };
   return (
     <div className="min-h-screen bg-background px-4 py-5 text-foreground">
@@ -107,24 +104,24 @@ export function AdminPage() {
             onClick={() => jump("finance", "deposit")}
           />
           <Metric
-            label="待处理提现"
-            value={String(pending("withdrawal"))}
+            label="用户调账"
+            value={String(accounts.reduce((sum, account) => sum + account.profile.coins, 0))}
             icon={<Coins />}
-            onClick={() => jump("finance", "withdrawal")}
+            onClick={() => jump("users")}
           />
         </div>
         <Card id="finance" className="space-y-3">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <SectionTitle title="财务审核中心" subtitle="点击订单查看完整用户资料与凭证" />
             <div className="flex gap-2">
-              {(["all", "deposit", "withdrawal"] as const).map((value) => (
+              {(["all", "deposit"] as const).map((value) => (
                 <Button
                   key={value}
                   size="sm"
                   variant={filter === value ? "primary" : "outline"}
                   onClick={() => setFilter(value)}
                 >
-                  {value === "all" ? "全部" : value === "deposit" ? "充值" : "提现"}
+                  {value === "all" ? "全部" : "充值"}
                 </Button>
               ))}
             </div>
@@ -248,9 +245,7 @@ function FinanceRow({
           {order.id} · {order.username}
         </div>
         <div className="text-[10px] text-muted-foreground">
-          {order.kind === "deposit"
-            ? `充值 ${order.amount} USDT · ${order.coins} 金币`
-            : `提现 ${order.coins} 金币 · ${order.amount} 金额`}
+          {`充值 ${order.amount} USD · ${order.coins} 金币`}
         </div>
       </button>
       <Badge tone={pending ? "vip" : order.status === "approved" ? "primary" : "muted"}>
@@ -404,15 +399,15 @@ function OrderDialog({
 }) {
   return (
     <Dialog
-      title={`${order.id} · ${order.kind === "deposit" ? "充值订单" : "提现申请"}`}
+      title={`${order.id} · 充值订单`}
       close={close}
     >
       <div className="grid gap-2 text-xs sm:grid-cols-2">
         <Info label="用户名" value={order.username} />
         <Info label="训练家代码" value={account?.profile.friendCode ?? "未找到"} />
         <Info label="联系方式" value={order.contact || "未填写"} />
-        <Info label="收付款户口" value={order.accountInfo || "未填写"} />
-        <Info label="金额" value={`${order.amount} / ${order.coins} 金币`} />
+        <Info label="收款账号" value={order.accountInfo || "未填写"} />
+        <Info label="金额" value={`${order.amount} USD / ${order.coins} 金币`} />
       </div>
       {order.proof ? (
         <a
@@ -438,7 +433,7 @@ function RoomDialog({ room, close }: { room: Room; close: () => void }) {
       <div className="grid gap-2 text-xs sm:grid-cols-2">
         <Info label="房主" value={`${room.hostName} · ${room.hostCode}`} />
         <Info label="模式" value={`${room.mode} · ${room.minutes} 分钟`} />
-        <Info label="密码" value={room.password || "远程邀请"} />
+        <Info label="密码" value={room.password ? "仅队员可见" : "远程邀请"} />
         <Info label="队列" value={`${room.queue.length}/${room.capacity}`} />
       </div>
       <div className="mt-3 space-y-2">
